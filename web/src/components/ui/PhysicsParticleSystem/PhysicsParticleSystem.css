@@ -1,0 +1,7 @@
+.physics-particle-container {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    overflow: hidden;
+}

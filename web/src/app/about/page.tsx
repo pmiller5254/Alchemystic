@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import MainLayout from '@/components/layout/MainLayout';
-import ParticleBackground from '@/components/ui/ParticleBackground';
+import ParticleBackground from '@/components/ui/ParticleBackground/ParticleBackground';
 
 const teamMembers = [
     {

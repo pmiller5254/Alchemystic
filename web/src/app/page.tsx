@@ -5,15 +5,14 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Lenis from 'lenis';
 import MainLayout from '@/components/layout/MainLayout';
-import ParticleBackground from '@/components/ui/ParticleBackground';
-import ComplexBlackHoleBackground from '@/components/ui/ComplexBlackHoleBackground';
-import ComplexBlackHoleBackgroundBlue from '@/components/ui/ComplexBlackHoleBackgroundBlue';
-import ComplexBlackHoleBackgroundForest from '@/components/ui/ComplexBlackHoleBackgroundForest';
-import ComplexBlackHoleBackgroundGold from '@/components/ui/ComplexBlackHoleBackgroundGold';
+import ParticleBackground from '@/components/ui/ParticleBackground/ParticleBackground';
+import ModernBlackHoleBackground from '@/components/ui/ModernBlackHoleBackground/ModernBlackHoleBackground';
+import PhysicsParticleSystem from '@/components/ui/PhysicsParticleSystem/PhysicsParticleSystem';
 
 export default function Home() {
   const [scrollStep, setScrollStep] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(1);
+  const [currentTheme, setCurrentTheme] = useState<'purple' | 'blue' | 'forest' | 'gold'>('purple');
 
   useEffect(() => {
     // Initialize Lenis smooth scroll
@@ -25,217 +24,133 @@ export default function Home() {
     // Make lenis globally available
     (window as any).lenis = lenis;
 
-    // Lenis scroll function
     function raf(time: number) {
       lenis.raf(time);
       requestAnimationFrame(raf);
     }
+
     requestAnimationFrame(raf);
 
-    // Handle scroll with Lenis
+    // Handle scroll progress
     lenis.on('scroll', (e: any) => {
-      const scrollY = e.scroll;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      const maxScroll = documentHeight - windowHeight;
-
-      // Calculate overall scroll progress (0 to 1)
-      const progress = Math.min(scrollY / maxScroll, 1);
+      const progress = e.progress;
       setScrollProgress(progress);
 
-      // Calculate step-based scroll (0, 1, 2, 3)
-      const step = Math.min(Math.floor(progress * 4), 3); // 4 steps: 0, 1, 2, 3
-      setScrollStep(step);
+      // Determine scroll step (0-3)
+      const step = Math.floor(progress * 4);
+      setScrollStep(Math.min(step, 3));
+
+      // Map scrollProgress directly to theme
+      let theme: 'purple' | 'blue' | 'forest' | 'gold';
+      if (progress < 0.25) theme = 'purple';
+      else if (progress < 0.5) theme = 'forest';
+      else if (progress < 0.75) theme = 'blue';
+      else theme = 'gold';
+      setCurrentTheme(theme);
     });
 
-    // Cleanup
     return () => {
       lenis.destroy();
     };
   }, []);
 
-  // Calculate opacity for each background based on scroll step
-  const getBackgroundOpacity = (backgroundStep: number) => {
-    const currentStep = Math.floor(scrollProgress * 4);
-    // Gold phase: always fully visible at the last step or at 100% scroll
-    if (backgroundStep === 3 && (currentStep === 3 || scrollProgress === 1)) {
-      return 1;
-    }
-    if (scrollProgress === 1) {
-      return 0;
-    }
-    const stepProgress = (scrollProgress * 4) % 1;
-    if (backgroundStep === currentStep) {
-      // If this is the last step, don't fade out
-      if (currentStep === 3) return 1;
-      return 1 - stepProgress;
-    } else if (backgroundStep === currentStep + 1) {
-      // If next step would be out of bounds, don't fade in
-      if (currentStep === 3) return 0;
-      return stepProgress;
-    }
-    return 0;
+  // Button text and links based on scroll step
+  const getButtonConfig = (step: number) => {
+    const configs = [
+      { text: 'I seek movement and embodiment.', link: '/movement', color: 'from-purple-400 to-purple-600' },
+      { text: 'I wish to tend to land and legacy.', link: '/legacy', color: 'from-green-400 to-green-600' },
+      { text: 'I am here to co-create space.', link: '/co-create', color: 'from-blue-400 to-blue-600' },
+      { text: 'I am called to nourish and shop.', link: '/nourish', color: 'from-orange-400 to-orange-600' }
+    ];
+    return configs[step] || configs[0];
   };
 
-  // Theme configuration based on scroll step
-  const getThemeConfig = (step: number) => {
-    switch (step) {
-      case 0: // Purple theme
-        return {
-          titleGradient: 'from-purple-400 to-slate-300',
-          buttonBg: 'bg-purple-600',
-          buttonHover: 'hover:bg-purple-700',
-          buttonLink: '/services'
-        };
-      case 1: // Blue theme
-        return {
-          titleGradient: 'from-blue-400 to-cyan-300',
-          buttonBg: 'bg-blue-600',
-          buttonHover: 'hover:bg-blue-700',
-          buttonLink: '/about'
-        };
-      case 2: // Forest theme
-        return {
-          titleGradient: 'from-green-800 to-gray-400',
-          buttonBg: 'bg-green-600',
-          buttonHover: 'hover:bg-green-700',
-          buttonLink: '/contact'
-        };
-      case 3: // Gold theme
-        return {
-          titleGradient: 'from-yellow-400 to-orange-500',
-          buttonBg: 'bg-amber-600',
-          buttonHover: 'hover:bg-amber-700',
-          buttonLink: '/products'
-        };
-      default: // Purple theme (fallback)
-        return {
-          titleGradient: 'from-purple-400 to-slate-300',
-          buttonBg: 'bg-purple-600',
-          buttonHover: 'hover:bg-purple-700',
-          buttonLink: '/services'
-        };
-    }
-  };
-
-  const currentTheme = getThemeConfig(scrollStep);
+  const buttonConfig = getButtonConfig(scrollStep);
 
   return (
     <MainLayout>
-      {/* Persistent cosmic particle background */}
-      <div style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none' }}>
-        <ParticleBackground />
-      </div>
+      <div className="relative min-h-screen">
+        {/* Modern WebGL Background System */}
+        <ModernBlackHoleBackground
+          scrollProgress={1}
+          theme={currentTheme}
+        />
 
-      {/* Purple Black Hole Background (Step 0) */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 1,
-          pointerEvents: 'none',
-          opacity: getBackgroundOpacity(0),
-          transition: 'opacity 1s ease-in-out'
-        }}
-      >
-        <ComplexBlackHoleBackground scrollProgress={scrollProgress} />
-      </div>
+        {/* Physics-based Particle System - Disabled for now */}
+        {/* <PhysicsParticleSystem
+          scrollProgress={scrollProgress}
+          theme={currentTheme}
+          particleCount={200}
+        /> */}
 
-      {/* Blue Black Hole Background (Step 1) */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 1,
-          pointerEvents: 'none',
-          opacity: getBackgroundOpacity(1),
-          transition: 'opacity 1s ease-in-out'
-        }}
-      >
-        <ComplexBlackHoleBackgroundBlue scrollProgress={scrollProgress} />
-      </div>
-
-      {/* Forest Black Hole Background (Step 2) */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 1,
-          pointerEvents: 'none',
-          opacity: getBackgroundOpacity(2),
-          transition: 'opacity 1s ease-in-out'
-        }}
-      >
-        <ComplexBlackHoleBackgroundForest scrollProgress={scrollProgress} />
-      </div>
-
-      {/* Gold Black Hole Background (Step 3) */}
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 1,
-          pointerEvents: 'none',
-          opacity: getBackgroundOpacity(3),
-          transition: 'opacity 1s ease-in-out'
-        }}
-      >
-        <ComplexBlackHoleBackgroundGold scrollProgress={scrollProgress} />
-      </div>
-
-      {/* Scroll Progress Indicator */}
-      <div style={{
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
-        zIndex: 20,
-        background: 'rgba(0,0,0,0.7)',
-        padding: '10px',
-        borderRadius: '5px',
-        color: 'white',
-        fontSize: '14px'
-      }}>
-        <div>Step: {scrollStep}</div>
-        <div>Progress: {(scrollProgress * 100).toFixed(1)}%</div>
-      </div>
-
-      {/* Fixed Hero Section - Always visible */}
-      <div className="fixed inset-0 z-10 flex flex-col items-center justify-center px-4 pointer-events-none">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="text-center pointer-events-auto"
-        >
-          <h1 className={`text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r ${currentTheme.titleGradient} font-script transition-all duration-1000`}>
-            A L C H E M Y S T I C
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">
-            Welcome to the Alchemystic Galaxy.
-          </p>
+        {/* Hero Content - Fixed in Center */}
+        <div className="fixed inset-0 z-30 flex items-center justify-center pointer-events-none">
           <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="space-x-4"
+            className="text-center px-4 pointer-events-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
           >
-            <Link
-              href={currentTheme.buttonLink}
-              className={`inline-block px-8 py-3 rounded-full ${currentTheme.buttonBg} text-white font-semibold ${currentTheme.buttonHover} transition-all duration-1000`}
+            <motion.h1
+              className="text-6xl md:text-8xl font-bold mb-6 tracking-tight"
+              animate={{
+                backgroundImage:
+                  currentTheme === 'purple'
+                    ? 'linear-gradient(120deg, #a78bfa 0%, #6d28d9 40%, #f472b6 80%, #fff1f2 100%)'
+                    : currentTheme === 'forest'
+                      ? 'linear-gradient(120deg, #15803d 0%, #16a34a 40%, #4ade80 80%, #dcfce7 100%)'
+                      : currentTheme === 'blue'
+                        ? 'linear-gradient(120deg, #3b82f6 0%, #1d4ed8 40%, #60a5fa 80%, #e0f2fe 100%)'
+                        : 'linear-gradient(120deg, #f59e0b 0%, #d97706 40%, #fbbf24 80%, #fef9c3 100%)',
+              }}
+              style={{
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+              transition={{
+                duration: 0.8,
+                ease: [0.4, 0, 0.2, 1],
+              }}
             >
-              {scrollStep === 0 && 'I seek movement and embodiment.'}
-              {scrollStep === 1 && 'I wish to tend to land and legacy.'}
-              {scrollStep === 2 && 'I am here to co-create space.'}
-              {scrollStep === 3 && 'I am called to nourish and shop.'}
-            </Link>
-          </motion.div>
-        </motion.div>
-      </div>
+              A L C H E M Y S T I C
+            </motion.h1>
 
-      {/* Scrollable content sections for background transitions */}
-      <div className="relative z-5 min-h-[200vh]"></div>
-      <div className="relative z-5 min-h-[200vh]"></div>
-      <div className="relative z-5 min-h-[200vh]"></div>
-      <div className="relative z-5 min-h-[200vh]"></div>
+            <motion.div
+              transition={{
+                duration: 0.8,
+                ease: [0.4, 0, 0.2, 1] // easeInOut
+              }}
+            >
+              <Link href={buttonConfig.link}>
+                <motion.button
+                  className={`px-8 py-4 text-lg font-semibold text-white rounded-full bg-gradient-to-r hover:scale-105 transition-all duration-300 shadow-2xl`}
+                  animate={{
+                    background: `linear-gradient(to right, ${currentTheme === 'purple' ? '#a78bfa, #6d28d9' :
+                      currentTheme === 'forest' ? '#22c55e, #16a34a' :
+                        currentTheme === 'blue' ? '#3b82f6, #1d4ed8' :
+                          '#f59e0b, #d97706'
+                      })`
+                  }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{
+                    duration: 0.8,
+                    ease: [0.4, 0, 0.2, 1] // easeInOut
+                  }}
+                >
+                  {buttonConfig.text}
+                </motion.button>
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
+
+        {/* Scrollable Content for Lenis */}
+        <div className="relative z-20" style={{ height: '800vh' }}>
+          {/* This creates the scrollable content that drives the background animations */}
+        </div>
+      </div>
     </MainLayout>
   );
 }

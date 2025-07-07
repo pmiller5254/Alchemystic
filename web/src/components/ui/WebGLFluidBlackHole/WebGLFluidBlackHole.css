@@ -1,0 +1,6 @@
+.webgl-fluid-container {
+    position: fixed;
+    inset: 0;
+    z-index: -10;
+    background: radial-gradient(circle at center, rgba(0, 0, 0, 0.95) 30%, rgba(0, 0, 0, 0.98) 100%);
+}

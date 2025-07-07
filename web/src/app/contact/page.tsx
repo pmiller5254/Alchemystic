@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
-import ParticleBackground from '@/components/ui/ParticleBackground';
+import ParticleBackground from '@/components/ui/ParticleBackground/ParticleBackground';
 import Script from 'next/script';
 
 export default function Contact() {

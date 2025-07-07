@@ -1,0 +1,90 @@
+.spiral-carousel-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    position: relative;
+    perspective: 1200px;
+    height: 80vh;
+    /* Use most of the viewport height within the section */
+    /* Fit within parent section */
+    overflow: hidden;
+    user-select: none;
+}
+
+.spiral-carousel {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    pointer-events: auto;
+}
+
+.spiral-carousel-item {
+    position: absolute;
+    width: 280px;
+    height: 340px;
+    left: 50%;
+    top: 50%;
+    margin-left: -140px;
+    margin-top: -170px;
+    pointer-events: none;
+    transform-style: preserve-3d;
+    transition: all 0.3s ease-out;
+}
+
+/* Movement page specific styling when used within movement context */
+.movement-page .spiral-carousel-item {
+    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.movement-page .spiral-carousel-item h4 {
+    color: #e9d5ff;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.movement-page .spiral-carousel-item p {
+    color: #f3e8ff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+    .spiral-carousel-container {
+        height: 70vh; /* Slightly smaller on mobile to leave room for instructions */
+        max-width: 500px;
+    }
+
+    .spiral-carousel-item {
+        width: 240px;
+        height: 300px;
+        margin-left: -120px;
+        margin-top: -150px;
+    }
+}
+
+/* DNA Double Helix Styling */
+.spiral-carousel-item.primary {
+    /* Primary strand - default styling */
+}
+
+.spiral-carousel-item.secondary {
+    /* Secondary strand - slightly different styling for distinction */
+    filter: hue-rotate(30deg) brightness(0.95);
+}
+
+.spiral-carousel-item.secondary::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, rgba(138, 43, 226, 0.2), rgba(75, 0, 130, 0.2));
+    border-radius: 16px;
+    z-index: -1;
+    pointer-events: none;
+    box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
+}

@@ -1,13 +1,13 @@
 'use client';
 
-import ComplexBlackHoleBackground from '@/components/ui/ComplexBlackHoleBackground';
+import TestBlackHoleBackground from '@/components/ui/TestBlackHoleBackground/TestBlackHoleBackground';
 
 export default function TestPage() {
     return (
         <div style={{ width: '100vw', height: '100vh', position: 'relative', background: 'black' }}>
             {/* Force the background to be visible */}
             <div style={{ position: 'absolute', inset: 0, zIndex: 1 }}>
-                <ComplexBlackHoleBackground scrollProgress={1} />
+                <TestBlackHoleBackground scrollProgress={1} />
             </div>
 
             {/* Debug info */}
