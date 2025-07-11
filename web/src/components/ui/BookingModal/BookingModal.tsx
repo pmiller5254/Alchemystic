@@ -60,7 +60,7 @@ export default function BookingModal({ isOpen, onClose }: BookingModalProps) {
 
                     <div className="booking-modal-footer">
                         <p className="booking-modal-note">
-                            Can't find a suitable time? <a href="mailto:hello@alchemystic.com">Email us directly</a>
+                            Can&apos;t find a suitable time? <a href="mailto:hello@alchemystic.com">Email us directly</a>
                         </p>
                     </div>
                 </div>

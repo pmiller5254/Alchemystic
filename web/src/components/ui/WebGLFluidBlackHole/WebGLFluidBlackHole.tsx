@@ -61,6 +61,9 @@ export default function WebGLFluidBlackHole({
     useEffect(() => {
         if (!containerRef.current) return;
 
+        // Capture container element for cleanup
+        const containerElement = containerRef.current;
+
         // Scene setup with lighting
         const scene = new THREE.Scene();
         sceneRef.current = scene;
@@ -96,7 +99,7 @@ export default function WebGLFluidBlackHole({
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setClearColor(0x000000, 0);
         rendererRef.current = renderer;
-        containerRef.current.appendChild(renderer.domElement);
+        containerElement.appendChild(renderer.domElement);
 
         // Create fluid droplets
         const createDroplet = (radius: number, angle: number, size: number) => {
@@ -144,9 +147,7 @@ export default function WebGLFluidBlackHole({
         scene.add(blackHole);
 
         // Animation loop
-        const animate = (time: number) => {
-            const timeValue = time * 0.001;
-
+        const animate = () => {
             // Update droplet positions (orbital motion)
             innerRing.forEach((droplet) => {
                 droplet.angle += droplet.speed;
@@ -173,7 +174,7 @@ export default function WebGLFluidBlackHole({
             animationIdRef.current = requestAnimationFrame(animate);
         };
 
-        animate(0);
+        animate();
 
         // Handle resize only
         const handleResize = () => {
@@ -189,8 +190,8 @@ export default function WebGLFluidBlackHole({
             if (animationIdRef.current) {
                 cancelAnimationFrame(animationIdRef.current);
             }
-            if (containerRef.current && renderer.domElement) {
-                containerRef.current.removeChild(renderer.domElement);
+            if (containerElement && renderer.domElement) {
+                containerElement.removeChild(renderer.domElement);
             }
             renderer.dispose();
         };

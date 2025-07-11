@@ -78,7 +78,7 @@ export default function About() {
                             <p className="text-gray-300">
                                 Our approach to wellness is rooted in the understanding that true health encompasses physical, mental,
                                 emotional, and spiritual well-being. We integrate various healing modalities to create comprehensive
-                                wellness programs tailored to each individual's needs.
+                                wellness programs tailored to each individual&apos;s needs.
                             </p>
                             <p className="text-gray-300">
                                 Through a combination of traditional practices and modern techniques, we help our clients develop

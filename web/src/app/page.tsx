@@ -5,13 +5,11 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Lenis from 'lenis';
 import MainLayout from '@/components/layout/MainLayout';
-import ParticleBackground from '@/components/ui/ParticleBackground/ParticleBackground';
 import ModernBlackHoleBackground from '@/components/ui/ModernBlackHoleBackground/ModernBlackHoleBackground';
-import PhysicsParticleSystem from '@/components/ui/PhysicsParticleSystem/PhysicsParticleSystem';
+import AlchemysticBanner from '@/components/ui/AlchemysticBanner/AlchemysticBanner';
 
 export default function Home() {
   const [scrollStep, setScrollStep] = useState(0);
-  const [scrollProgress, setScrollProgress] = useState(1);
   const [currentTheme, setCurrentTheme] = useState<'purple' | 'blue' | 'forest' | 'gold'>('purple');
 
   useEffect(() => {
@@ -22,7 +20,7 @@ export default function Home() {
     });
 
     // Make lenis globally available
-    (window as any).lenis = lenis;
+    (window as typeof window & { lenis: typeof lenis }).lenis = lenis;
 
     function raf(time: number) {
       lenis.raf(time);
@@ -32,9 +30,8 @@ export default function Home() {
     requestAnimationFrame(raf);
 
     // Handle scroll progress
-    lenis.on('scroll', (e: any) => {
+    lenis.on('scroll', (e: { progress: number }) => {
       const progress = e.progress;
-      setScrollProgress(progress);
 
       // Determine scroll step (0-3)
       const step = Math.floor(progress * 4);
@@ -70,21 +67,19 @@ export default function Home() {
   return (
     <MainLayout>
       <div className="relative min-h-screen">
+        {/* ALCHEMYSTIC Banner that transforms to navbar */}
+        <div className="relative z-50">
+          <AlchemysticBanner page="home" theme={currentTheme} />
+        </div>
+
         {/* Modern WebGL Background System */}
         <ModernBlackHoleBackground
           scrollProgress={1}
           theme={currentTheme}
         />
 
-        {/* Physics-based Particle System - Disabled for now */}
-        {/* <PhysicsParticleSystem
-          scrollProgress={scrollProgress}
-          theme={currentTheme}
-          particleCount={200}
-        /> */}
-
         {/* Hero Content - Fixed in Center */}
-        <div className="fixed inset-0 z-30 flex items-center justify-center pointer-events-none">
+        <div className="fixed inset-0 z-30 flex items-center justify-center pointer-events-none" style={{ paddingTop: '80px' }}>
           <motion.div
             className="text-center px-4 pointer-events-auto"
             initial={{ opacity: 0, y: 20 }}

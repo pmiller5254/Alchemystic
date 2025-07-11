@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import './page.css';
 import Rotating3DCarousel from '@/components/ui/Rotating3DCarousel/Rotating3DCarousel';
 import StarryBackground from '@/components/ui/StarryBackground/StarryBackground';
@@ -10,10 +11,9 @@ export default function CoCreatePage() {
     const [targetRotation, setTargetRotation] = useState({ x: -5, y: 0 }); // target rotation
     const [currentRotation, setCurrentRotation] = useState({ x: -5, y: 0 }); // smoothly interpolated rotation
     const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
-    const maxRotateUp = 3;    // degrees up (negative x, reduced for less upward tilt)
     const maxRotateDown = 18; // degrees down (positive x, much more downward)
     const maxRotateY = 7;     // degrees left/right
-    const maxTranslate = 80;  // px, wider parallax effect
+    const maxTranslate = 80;
 
     // Sample site data for the carousel
     const sites = [
@@ -45,7 +45,7 @@ export default function CoCreatePage() {
             id: 4,
             title: "Forest Grove",
             price: "$125/night",
-            description: "Ancient redwood grove sanctuary offering deep connection with nature's wisdom and grounding earth energies.",
+            description: "Ancient redwood grove sanctuary offering deep connection with nature&apos;s wisdom and grounding earth energies.",
             image: "/space.png",
             location: "Northern California"
         },
@@ -161,9 +161,11 @@ export default function CoCreatePage() {
                 onMouseMove={handleMouseMove}
             >
                 {/* Perspective background image */}
-                <img
+                <Image
                     src="/space.png"
                     alt="Space Background"
+                    width={1920}
+                    height={1080}
                     className="background-perspective-image"
                     style={{
                         transform: `perspective(1200px) scale(1.8) rotateX(${currentRotation.x}deg) rotateY(${currentRotation.y}deg) translate(${translateX}px, ${translateY}px)`,

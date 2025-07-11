@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { gsap } from 'gsap';
 import './SpiralCarousel.css';
 
 interface SpiralCarouselProps {
@@ -24,7 +23,7 @@ export default function SpiralCarousel({
     const [isDragging, setIsDragging] = useState(false);
     const [lastY, setLastY] = useState(0);
     const [velocity, setVelocity] = useState(0);
-    const animationRef = useRef<number | undefined>();
+    const animationRef = useRef<number | undefined>(undefined);
 
     // Use either provided numPanels or length of children
     const actualNumPanels = numPanels || children.length;

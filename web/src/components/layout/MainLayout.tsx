@@ -1,38 +1,27 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import Lenis from 'lenis';
+import { useEffect } from 'react';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
-    const pathname = usePathname();
-    const [showNav, setShowNav] = useState(true);
-
     useEffect(() => {
-        let lastScrollY = 0;
         let ticking = false;
 
         const updateNav = () => {
-            const currentScrollY = window.scrollY;
-            if (currentScrollY < 10) {
-                setShowNav(true);
-            } else if (currentScrollY > lastScrollY) {
-                setShowNav(false); // scrolling down
-            } else {
-                setShowNav(true); // scrolling up
-            }
-            lastScrollY = currentScrollY;
+            // Navigation logic remains for potential future use
             ticking = false;
         };
 
         // Use Lenis if available, otherwise fall back to native scroll
         if (typeof window !== 'undefined') {
-            const lenis = (window as any).lenis;
+            const lenis = (window as typeof window & {
+                lenis?: {
+                    on: (event: string, callback: () => void) => void;
+                    off: (event: string, callback: () => void) => void;
+                }
+            }).lenis;
 
             if (lenis) {
-                const onScroll = (e: any) => {
+                const onScroll = () => {
                     if (!ticking) {
                         window.requestAnimationFrame(updateNav);
                         ticking = true;
@@ -52,14 +41,6 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             }
         }
     }, []);
-
-    const navItems = [
-        { name: 'Home', path: '/' },
-        { name: 'About', path: '/about' },
-        { name: 'Services', path: '/services' },
-        { name: 'Products', path: '/products' },
-        { name: 'Contact', path: '/contact' },
-    ];
 
     return (
         <div className="min-h-screen bg-black text-white">

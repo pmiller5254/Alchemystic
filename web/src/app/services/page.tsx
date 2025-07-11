@@ -21,7 +21,7 @@ const services = [
     },
     {
         title: 'Energy Balancing',
-        description: 'Restore harmony to your body\'s energy systems through guided practices.',
+        description: 'Restore harmony to your body&apos;s energy systems through guided practices.',
         duration: '45-60 minutes',
         price: 'From $95',
         icon: '✨',

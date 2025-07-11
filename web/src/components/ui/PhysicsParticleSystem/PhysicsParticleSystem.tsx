@@ -191,6 +191,9 @@ export default function PhysicsParticleSystem({
     useEffect(() => {
         if (!mountRef.current) return;
 
+        // Capture mount element for cleanup
+        const mountElement = mountRef.current;
+
         // Scene setup
         const scene = new THREE.Scene();
         sceneRef.current = scene;
@@ -242,7 +245,7 @@ export default function PhysicsParticleSystem({
         particlesRef.current = particles;
 
         // Add to DOM
-        mountRef.current.appendChild(renderer.domElement);
+        mountElement.appendChild(renderer.domElement);
 
         // Animation loop
         const blackHolePosition = new THREE.Vector3(0, 0, 0);
@@ -290,7 +293,6 @@ export default function PhysicsParticleSystem({
 
             for (let i = 0; i < particles.length; i++) {
                 const particle = particles[i];
-                const idx = i * 3;
 
                 positionAttr.setXYZ(i, particle.position.x, particle.position.y, particle.position.z);
                 // Keep particles visible throughout scroll - use a more subtle size variation
@@ -332,12 +334,12 @@ export default function PhysicsParticleSystem({
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current);
             }
-            if (mountRef.current && renderer.domElement) {
-                mountRef.current.removeChild(renderer.domElement);
+            if (mountElement && renderer.domElement) {
+                mountElement.removeChild(renderer.domElement);
             }
             renderer.dispose();
         };
-    }, [initializeParticles, scrollProgress]);
+    }, [initializeParticles, scrollProgress, particleCount]);
 
     return (
         <div

@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
 import './TestBlackHoleBackground.css';
 
 interface TestBlackHoleBackgroundProps {
@@ -311,8 +312,8 @@ export default function TestBlackHoleBackground({
         };
     }, [theme, themeColors, scrollProgress]);
 
-    // Update scroll progress with smooth transitions
-    useEffect(() => {
+    // Update scroll progress with smooth transitions - using useGSAP for better React integration
+    useGSAP(() => {
         if (diskRef.current?.material) {
             const material = diskRef.current.material as THREE.ShaderMaterial;
             gsap.to(material.uniforms.scrollProgress, {

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import './SiteCard.css';
 
 interface SiteCardProps {
@@ -28,7 +29,7 @@ export default function SiteCard({
 }: SiteCardProps) {
     // Calculate background position for continuous sky panning effect
     const backgroundPositionX = totalCards > 1 ? (index / (totalCards - 1)) * 100 : 50;
-    
+
     const cardStyle = {
         backgroundImage: 'url(/sky.jpg)',
         backgroundSize: '300% 100%', // Make image wider for panning effect
@@ -38,7 +39,13 @@ export default function SiteCard({
     return (
         <div className="site-card" style={cardStyle}>
             <div className="site-card-image">
-                <img src={image} alt={title} />
+                <Image
+                    src={image}
+                    alt={title}
+                    width={60}
+                    height={60}
+                    className="site-card-icon"
+                />
                 {location && (
                     <div className="site-card-location">
                         <span>{location}</span>

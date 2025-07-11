@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
-import './ModernBlackHoleBackground.css';
+import './InvertedBlackHoleBackground.css';
 
-interface ModernBlackHoleBackgroundProps {
+interface InvertedBlackHoleBackgroundProps {
     scrollProgress?: number;
     theme?: 'purple' | 'blue' | 'forest' | 'gold';
 }
 
-// Vertex shader for the accretion disk
+// Vertex shader for the inverted black hole - EXACT copy from ModernBlackHoleBackground
 const vertexShader = `
     varying vec2 vUv;
     varying vec3 vPosition;
@@ -25,7 +25,7 @@ const vertexShader = `
     }
 `;
 
-// Fragment shader for the accretion disk with intense plasma effects
+// Fragment shader - EXACT ModernBlackHoleBackground plasma but as filled circle
 const fragmentShader = `
     uniform float time;
     uniform float scrollProgress;
@@ -87,19 +87,15 @@ const fragmentShader = `
         float dist = length(centeredUv);
         float angle = atan(centeredUv.y, centeredUv.x);
         
-        // Create dynamic accretion disk (original size)
-        float edge = smoothstep(0.69, 0.75, dist);
-        float innerEdge = smoothstep(0.345, 0.46, dist);
+        // Create filled circle - same size as zoomed out ModernBlackHoleBackground
+        float edge = smoothstep(0.35, 0.4, dist);  // Match ModernBlackHoleBackground zoomed size
+        // REMOVED: float innerEdge = smoothstep(0.345, 0.46, dist); - this made the ring hollow
         
         float disk = 1.0 - edge;
-        disk *= innerEdge;
-        
-        // Stronger black hole center - ensure no artifacts
-        float blackHole = 1.0 - smoothstep(0.0, 0.35, dist);
-        disk *= (1.0 - blackHole);
+        // REMOVED: disk *= innerEdge; - this created the hollow center
         
         // Add intense radial plasma gradient
-        float radial = 1.0 - smoothstep(0.345, 0.75, dist);
+        float radial = 1.0 - smoothstep(0.18, 0.4, dist);  // Match ModernBlackHoleBackground zoomed size
         radial = pow(radial, 1.2);
         disk *= radial;
         
@@ -110,8 +106,8 @@ const fragmentShader = `
         
         // Only calculate plasma effects where disk actually exists
         if (disk > 0.1) {
-            plasmaIntensity = plasmaTurbulence(uv * 4.0, time, disk); // Lower frequency for larger disk
-            flameIntensity = flameFlicker(uv, time, disk);
+            plasmaIntensity = plasmaTurbulence(uv * 4.0, time, disk) * (1.0 + 0.6 * scrollProgress);
+            flameIntensity = flameFlicker(uv, time, disk) * (0.8 + 0.6 * scrollProgress);
             surfaceIntensity = plasmaIntensity * flameIntensity;
             disk *= (0.8 + 0.8 * surfaceIntensity);
         }
@@ -122,8 +118,8 @@ const fragmentShader = `
         pulse += 0.08 * sin(time * 11.0);
         disk *= pulse;
         
-        // Declare variables outside conditional block for alpha calculations (original size)
-        float rimMask = smoothstep(0.72, 0.75, dist);
+        // Declare variables outside conditional block for alpha calculations (zoomed out)
+        float rimMask = smoothstep(0.38, 0.4, dist);  // Match ModernBlackHoleBackground zoomed size
         
         // Only apply colors and effects where disk exists
         vec3 finalColor = vec3(0.0);
@@ -146,8 +142,8 @@ const fragmentShader = `
             finalColor = plasmaColor * disk * diskIntensity * 1.5;
             finalColor = mix(finalColor, flameColor, flameRim * 0.8);
             
-            // Add intense outer glow - increased intensity (only where disk exists) (original size)
-            float outerGlow = smoothstep(0.72, 0.75, dist) * 3.0 * disk;
+            // Add intense outer glow - increased intensity (only where disk exists) (zoomed out)
+            float outerGlow = smoothstep(0.38, 0.4, dist) * 3.0 * disk;  // Match ModernBlackHoleBackground zoomed size
             finalColor += themeColor * outerGlow * diskIntensity;
         }
         
@@ -165,82 +161,23 @@ const fragmentShader = `
     }
 `;
 
-// Particle system vertex shader
-const particleVertexShader = `
-    attribute float size;
-    attribute float speed;
-    attribute float offset;
-    attribute vec3 color;
-    
-    uniform float time;
-    
-    varying vec3 vColor;
-    varying float vAlpha;
-    
-    void main() {
-        vColor = color;
-        
-        // Calculate particle position with orbital motion
-        float angle = position.z + time * speed + offset;
-        float radius = length(position.xy);
-        
-        // Simple circular orbit with some variation
-        vec3 pos = vec3(
-            radius * cos(angle),
-            radius * sin(angle),
-            0.0
-        );
-        
-        // Add slight orbital variation
-        pos.x += 0.05 * sin(time * 0.3 + offset);
-        pos.y += 0.05 * cos(time * 0.3 + offset);
-        
-        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
-        gl_PointSize = size * 100.0; // Fixed size for consistency
-        gl_Position = projectionMatrix * mvPosition;
-        
-        // Fade particles based on distance from center (adjusted for smaller disk)
-        float dist = length(pos.xy);
-        vAlpha = 1.0 - smoothstep(0.25, 0.4, dist);
-        
-        // Ensure particles very close to center are invisible (black hole effect)
-        vAlpha *= smoothstep(0.15, 0.2, dist);
-        vAlpha = clamp(vAlpha, 0.0, 1.0);
-    }
-`;
 
-// Particle fragment shader
-const particleFragmentShader = `
-    varying vec3 vColor;
-    varying float vAlpha;
-    
-    void main() {
-        vec2 center = gl_PointCoord - 0.5;
-        float dist = length(center);
-        
-        if (dist > 0.5) discard;
-        
-        // Simple circular fade
-        float alpha = (1.0 - dist * 2.0) * vAlpha;
-        alpha = clamp(alpha, 0.0, 1.0);
-        
-        gl_FragColor = vec4(vColor, alpha);
-    }
-`;
 
-export default function ModernBlackHoleBackground({
+
+
+export default function InvertedBlackHoleBackground({
     scrollProgress = 0,
     theme = 'purple'
-}: ModernBlackHoleBackgroundProps) {
+}: InvertedBlackHoleBackgroundProps) {
     const mountRef = useRef<HTMLDivElement>(null);
     const sceneRef = useRef<THREE.Scene | null>(null);
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
     const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
     const diskRef = useRef<THREE.Mesh | null>(null);
-    const particlesRef = useRef<THREE.Points | null>(null);
+
     const animationRef = useRef<number | null>(null);
 
-    // Theme colors
+    // Theme colors - EXACT copy from ModernBlackHoleBackground
     const themeColors = useMemo(() => ({
         purple: {
             primary: new THREE.Color(0xa78bfa),
@@ -269,11 +206,11 @@ export default function ModernBlackHoleBackground({
 
         const mountElement = mountRef.current;
 
-        // Scene setup
+        // Scene setup - EXACT copy from ModernBlackHoleBackground
         const scene = new THREE.Scene();
         sceneRef.current = scene;
 
-        // Get viewport size
+        // Get viewport size - EXACT copy from ModernBlackHoleBackground
         const getSize = () => {
             return {
                 width: window.innerWidth,
@@ -282,28 +219,28 @@ export default function ModernBlackHoleBackground({
             };
         };
 
-        // Create renderer
+        // Create renderer with transparent background (CSS handles black background)
         const renderer = new THREE.WebGLRenderer({
             alpha: true,
-            antialias: true,
+            antialias: true, // Enable for better visual quality
             powerPreference: 'high-performance',
         });
         const { width, height, min } = getSize();
         renderer.setSize(width, height);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Allow higher pixel ratio
         renderer.domElement.style.width = '100vw';
         renderer.domElement.style.height = '100vh';
-        renderer.setClearColor(0x000000, 0);
+        renderer.setClearColor(0x000000, 0); // Transparent background - CSS handles black void
         rendererRef.current = renderer;
 
-        // Create camera
+        // Create camera - match ModernBlackHoleBackground setup exactly
         const camera = new THREE.OrthographicCamera(
             -min / 2, min / 2, min / 2, -min / 2, 0.1, 1000
         );
         camera.position.z = 1;
         cameraRef.current = camera;
 
-        // Create accretion disk geometry
+        // Create accretion disk geometry - EXACT copy from ModernBlackHoleBackground
         const geometry = new THREE.PlaneGeometry(min, min);
         const diskMaterial = new THREE.ShaderMaterial({
             vertexShader,
@@ -324,146 +261,37 @@ export default function ModernBlackHoleBackground({
         scene.add(disk);
         diskRef.current = disk;
 
-        // Create background stars in the corners of the universe
-        const starCount = 40;
-        const starGeometry = new THREE.BufferGeometry();
-        const starPositions = new Float32Array(starCount * 3);
-        const starColors = new Float32Array(starCount * 3);
-
-        for (let i = 0; i < starCount; i++) {
-            // Place stars in the four corners of the screen
-            const corner = Math.floor(i / 10); // 10 stars per corner
-            const cornerIndex = i % 10;
-
-            let x, y;
-            const cornerDistance = 0.3 + Math.random() * 0.15; // Distance from exact corner
-            const cornerSpread = 0.2 + Math.random() * 0.15; // Spread within corner area
-
-            switch (corner) {
-                case 0: // Top-left
-                    x = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
-                    y = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
-                    break;
-                case 1: // Top-right
-                    x = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
-                    y = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
-                    break;
-                case 2: // Bottom-left
-                    x = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
-                    y = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
-                    break;
-                case 3: // Bottom-right
-                default:
-                    x = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
-                    y = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
-                    break;
-            }
-
-            starPositions[i * 3] = x;
-            starPositions[i * 3 + 1] = y;
-            starPositions[i * 3 + 2] = 0;
-
-            // Mix of white and theme-colored stars
-            const isThemed = Math.random() > 0.8;
-            if (isThemed) {
-                const color = themeColors[theme].accent;
-                starColors[i * 3] = color.r * 0.7;
-                starColors[i * 3 + 1] = color.g * 0.7;
-                starColors[i * 3 + 2] = color.b * 0.7;
-            } else {
-                const brightness = 0.5 + Math.random() * 0.4;
-                starColors[i * 3] = brightness;
-                starColors[i * 3 + 1] = brightness;
-                starColors[i * 3 + 2] = brightness;
-            }
-        }
-
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
-
-        // Create star texture (smaller, twinkly points)
-        const createStarTexture = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 16;
-            canvas.height = 16;
-            const ctx = canvas.getContext('2d')!;
-
-            // Create bright center point for stars
-            const gradient = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.8)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 16, 16);
-
-            return new THREE.CanvasTexture(canvas);
-        };
-
-        // Star material
-        const starMaterial = new THREE.PointsMaterial({
-            size: min * 0.003, // Smaller for distant stars
-            map: createStarTexture(),
-            transparent: true,
-            opacity: 0.7,
-            vertexColors: true,
-            blending: THREE.AdditiveBlending,
-            sizeAttenuation: false
-        });
-
-        const stars = new THREE.Points(starGeometry, starMaterial);
-        scene.add(stars);
-        particlesRef.current = stars; // Store stars reference for now
+        // Particle effects disabled for now
 
         // Add to DOM
         mountElement.appendChild(renderer.domElement);
 
-        // Animation loop
+        // Smooth animation loop without flickering optimizations
         const startTime = Date.now();
+
         const animate = () => {
             const time = (Date.now() - startTime) / 1000;
 
-            // Update disk uniforms
+            // Update uniforms
             if (diskMaterial.uniforms) {
                 diskMaterial.uniforms.time.value = time;
                 diskMaterial.uniforms.scrollProgress.value = scrollProgress;
-                diskMaterial.uniforms.turbulence.value = 0.5; // Fixed value, no scroll intensity
-                diskMaterial.uniforms.diskIntensity.value = 1.0; // Fixed value, no scroll intensity
+                diskMaterial.uniforms.turbulence.value = 0.3 + 0.4 * scrollProgress;
+                diskMaterial.uniforms.diskIntensity.value = 0.8 + 0.4 * scrollProgress;
                 diskMaterial.uniforms.uMinDimension.value = Math.min(window.innerWidth, window.innerHeight);
             }
 
-            // Add subtle star twinkling effect for corner stars
-            if (particlesRef.current) {
-                const colors = particlesRef.current.geometry.attributes.color.array as Float32Array;
+            // Particle animation disabled
 
-                for (let i = 0; i < starCount; i++) {
-                    // Subtle twinkling by adjusting brightness
-                    const twinkle = 0.8 + 0.2 * Math.sin(time * 2 + i * 0.5);
-
-                    // Update star colors with twinkling
-                    if (i % 5 === 0) { // Some themed stars
-                        const color = themeColors[theme].accent;
-                        colors[i * 3] = color.r * 0.7 * twinkle;
-                        colors[i * 3 + 1] = color.g * 0.7 * twinkle;
-                        colors[i * 3 + 2] = color.b * 0.7 * twinkle;
-                    } else {
-                        const brightness = 0.6 * twinkle;
-                        colors[i * 3] = brightness;
-                        colors[i * 3 + 1] = brightness;
-                        colors[i * 3 + 2] = brightness;
-                    }
-                }
-
-                particlesRef.current.geometry.attributes.color.needsUpdate = true;
-            }
-
+            // Render the scene
             renderer.render(scene, camera);
+
             animationRef.current = requestAnimationFrame(animate);
         };
 
         animate();
 
-        // Handle resize
+        // Handle resize - match ModernBlackHoleBackground
         const handleResize = () => {
             const { width, height, min } = getSize();
             renderer.setSize(width, height);
@@ -474,11 +302,6 @@ export default function ModernBlackHoleBackground({
             camera.top = min / 2;
             camera.bottom = -min / 2;
             camera.updateProjectionMatrix();
-
-            // Update star size for new viewport
-            if (starMaterial) {
-                starMaterial.size = min * 0.003;
-            }
         };
         window.addEventListener('resize', handleResize);
 
@@ -500,34 +323,28 @@ export default function ModernBlackHoleBackground({
             const material = diskRef.current.material as THREE.ShaderMaterial;
             gsap.to(material.uniforms.scrollProgress, {
                 value: scrollProgress,
-                duration: 0.5,
+                duration: 0.3,
                 ease: "power2.out"
             });
         }
     }, [scrollProgress]);
 
-    // Update star colors when theme changes
+    // Update theme colors
     useEffect(() => {
-        if (particlesRef.current) {
-            const colors = particlesRef.current.geometry.attributes.color.array as Float32Array;
+        if (diskRef.current?.material) {
+            const diskMaterial = diskRef.current.material as THREE.ShaderMaterial;
+            const colors = themeColors[theme];
 
-            for (let i = 0; i < 40; i++) { // starCount
-                if (i % 5 === 0) { // Some themed stars
-                    const color = themeColors[theme].accent;
-                    colors[i * 3] = color.r * 0.7;
-                    colors[i * 3 + 1] = color.g * 0.7;
-                    colors[i * 3 + 2] = color.b * 0.7;
-                }
-            }
-
-            particlesRef.current.geometry.attributes.color.needsUpdate = true;
+            // Update disk material theme colors
+            diskMaterial.uniforms.themeColor.value = colors.primary;
+            diskMaterial.uniforms.themeColorSecondary.value = colors.secondary;
         }
     }, [theme, themeColors]);
 
     return (
         <div
             ref={mountRef}
-            className="modern-blackhole-container"
+            className="inverted-black-hole-container"
         />
     );
 } 

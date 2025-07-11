@@ -1,22 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import SpiralCarousel from '../../components/ui/SpiralCarousel/SpiralCarousel';
 import SiteCard from '../../components/ui/SiteCard/SiteCard';
 import './page.css';
 
 export default function MovementPage() {
-    const [isMounted, setIsMounted] = useState(false);
-
-    useEffect(() => {
-        setIsMounted(true);
-    }, []);
-
     const siteData = [
         {
             title: "Embodied Flow",
             price: "$120",
-            description: "Dynamic movement sequences that awaken your body's natural wisdom",
+            description: "Dynamic movement sequences that awaken your body&apos;s natural wisdom",
             image: "/globe.svg",
             location: "Studio A"
         },
@@ -96,7 +89,7 @@ export default function MovementPage() {
                                 authentic self-expression.
                             </p>
                             <p>
-                                Whether you're seeking trauma healing, emotional release, or deeper
+                                Whether you&apos;re seeking trauma healing, emotional release, or deeper
                                 body awareness, our practitioners guide you with compassion and expertise.
                             </p>
                         </div>

@@ -137,7 +137,6 @@ export default function ParticleBackground({ scrollProgress = 0, colorA = '#a78b
         });
 
         // For smooth spin, lerp the rotation angle
-        let lastScroll = scrollProgress;
         let currentAngle = 0;
         const maxAngle = Math.PI * 2; // One full spin per scroll
 

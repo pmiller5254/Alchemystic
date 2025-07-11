@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { gsap } from 'gsap';
 import { Observer } from 'gsap/Observer';
+import { useGSAP } from '@gsap/react';
 import SiteCard from '../SiteCard/SiteCard';
 import './Rotating3DCarousel.css';
 
@@ -31,7 +32,7 @@ export default function Rotating3DCarousel({
     const progress = useRef({ value: 0 });
     const radius = 400; // Further reduced to maximize card visibility
 
-    useEffect(() => {
+    useGSAP(() => {
         const carousel = carouselRef.current;
         if (!carousel) return;
 
@@ -56,10 +57,6 @@ export default function Rotating3DCarousel({
                 const theta = index / images.length - progress.current.value;
                 const x = -Math.sin(theta * Math.PI * 2) * radius;
                 const y = Math.cos(theta * Math.PI * 2) * radius;
-
-                // Calculate visibility based on position
-                // y > 0 means towards viewer, y < 0 means away from viewer
-                const isVisible = y > -radius * 0.3; // Only show cards not too far back
 
                 // Calculate distance from center front position (x=0, y=radius)
                 const distanceFromFront = Math.sqrt(x * x + (y - radius) * (y - radius));
