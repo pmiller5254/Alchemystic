@@ -1,256 +1,125 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import Lenis from 'lenis';
-import InvertedBlackHoleBackground from '@/components/ui/InvertedBlackHoleBackground/InvertedBlackHoleBackground';
+import { useState, useEffect } from 'react';
+import InvertedBlackHole3D from '@/components/ui/InvertedBlackHoleBackground/InvertedBlackHole3D';
+import CustomShaderBackground from '@/components/ui/InvertedBlackHoleBackground/CustomShaderBackground';
 
 export default function TestPage() {
+    const [theme, setTheme] = useState<'purple' | 'blue' | 'forest' | 'gold'>('purple');
+    const [rotationSpeed, setRotationSpeed] = useState(1.0);
+    const [debugSeam, setDebugSeam] = useState(false);
+
     const [scrollProgress, setScrollProgress] = useState(0);
-    const [currentTheme, setCurrentTheme] = useState<'purple' | 'blue' | 'forest' | 'gold'>('purple');
 
-    // Performance optimization refs
-    const lastUpdateTime = useRef(0);
-    const animationFrameId = useRef<number | null>(null);
-    const lastTheme = useRef<string>('purple');
-
-    // Throttled update function using RAF
-    const throttledUpdate = useCallback((progress: number) => {
-        if (animationFrameId.current) {
-            cancelAnimationFrame(animationFrameId.current);
-        }
-
-        animationFrameId.current = requestAnimationFrame(() => {
-            const now = performance.now();
-
-            // Limit updates to ~45fps for better performance while maintaining smoothness
-            if (now - lastUpdateTime.current >= 22) {
-                setScrollProgress(progress);
-
-                // Only update theme if it actually changed
-                let newTheme: 'purple' | 'blue' | 'forest' | 'gold';
-                if (progress < 0.25) newTheme = 'purple';
-                else if (progress < 0.5) newTheme = 'forest';
-                else if (progress < 0.75) newTheme = 'blue';
-                else newTheme = 'gold';
-
-                if (newTheme !== lastTheme.current) {
-                    setCurrentTheme(newTheme);
-                    lastTheme.current = newTheme;
-                }
-
-                lastUpdateTime.current = now;
-            }
-        });
-    }, []);
-
+    // Handle scroll-based theme changes
     useEffect(() => {
-        // Initialize Lenis smooth scroll
-        const lenis = new Lenis({
-            duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-        });
+        const handleScroll = () => {
+            const scrollY = window.scrollY;
+            const windowHeight = window.innerHeight;
+            const totalHeight = document.documentElement.scrollHeight - windowHeight;
+            const scrollProgress = totalHeight > 0 ? scrollY / totalHeight : 0;
 
-        // Make lenis globally available
-        (window as typeof window & { lenis: typeof lenis }).lenis = lenis;
+            setScrollProgress(scrollProgress);
 
-        function raf(time: number) {
-            lenis.raf(time);
-            requestAnimationFrame(raf);
-        }
+            // Calculate which section we're in (4 sections total)
+            const sectionHeight = totalHeight / 4;
+            const currentSection = Math.floor(scrollY / sectionHeight);
 
-        requestAnimationFrame(raf);
+            // Map sections to themes
+            const themes: ('purple' | 'blue' | 'forest' | 'gold')[] = ['purple', 'blue', 'forest', 'gold'];
+            const newTheme = themes[Math.min(currentSection, themes.length - 1)];
 
-        // Handle scroll progress with throttling
-        lenis.on('scroll', (e: { progress: number }) => {
-            throttledUpdate(e.progress);
-        });
-
-        return () => {
-            if (animationFrameId.current) {
-                cancelAnimationFrame(animationFrameId.current);
+            if (newTheme !== theme) {
+                setTheme(newTheme);
             }
-            lenis.destroy();
         };
-    }, [throttledUpdate]);
 
-    // Get theme display info
-    const getThemeInfo = (theme: string) => {
-        const themes = {
-            purple: { name: 'Purple Plasma', range: '0% - 25%' },
-            forest: { name: 'Forest Energy', range: '25% - 50%' },
-            blue: { name: 'Blue Cosmos', range: '50% - 75%' },
-            gold: { name: 'Golden Radiance', range: '75% - 100%' }
-        };
-        return themes[theme as keyof typeof themes] || themes.purple;
-    };
-
-    const themeInfo = getThemeInfo(currentTheme);
+        window.addEventListener('scroll', handleScroll);
+        handleScroll(); // Set initial theme
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [theme]);
 
     return (
-        <div style={{ position: 'relative' }}>
-            {/* Inverted Black Hole Background - Fixed */}
-            <div style={{ position: 'fixed', inset: 0, zIndex: 1 }}>
-                <InvertedBlackHoleBackground
-                    scrollProgress={scrollProgress}
-                    theme={currentTheme}
-                />
-            </div>
+        <div className="bg-neutral-900">
+            {/* Custom shader background */}
+            <CustomShaderBackground
+                scale={0.4}
+                ax={5}
+                ay={7}
+                az={9}
+                aw={13}
+                bx={1}
+                by={1}
+                color1="#000000"
+                color2="#000000"
+                color3={theme === 'purple' ? '#8b5cf6' : theme === 'blue' ? '#3b82f6' : theme === 'forest' ? '#10b981' : '#f59e0b'}
+                color4="#000000"
+            />
 
-            {/* Debug info */}
-            <div style={{
-                position: 'fixed',
-                top: '10px',
-                left: '10px',
-                color: 'white',
-                fontSize: '16px',
-                zIndex: 10,
-                background: 'rgba(0,0,0,0.7)',
-                padding: '10px',
-                borderRadius: '8px',
-                fontFamily: 'monospace'
-            }}>
-                <div>Inverted Black Hole Test</div>
-                <div>Progress: {(scrollProgress * 100).toFixed(1)}%</div>
-                <div>Theme: {themeInfo.name}</div>
-                <div>Range: {themeInfo.range}</div>
-                <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '5px' }}>
-                    Optimized: ~45fps updates
-                </div>
-            </div>
+            {/* Fixed sphere background */}
+            <InvertedBlackHole3D
+                theme={theme}
+                rotationSpeed={rotationSpeed}
+                debugSeam={debugSeam}
+                scrollProgress={scrollProgress}
+            />
 
-            {/* Theme indicators */}
-            <div style={{
-                position: 'fixed',
-                top: '50%',
-                right: '20px',
-                transform: 'translateY(-50%)',
-                zIndex: 10,
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '20px'
-            }}>
-                {['purple', 'forest', 'blue', 'gold'].map((theme) => (
-                    <div
-                        key={theme}
-                        style={{
-                            width: '12px',
-                            height: '12px',
-                            borderRadius: '50%',
-                            background: currentTheme === theme ?
-                                (theme === 'purple' ? '#a78bfa' :
-                                    theme === 'forest' ? '#22c55e' :
-                                        theme === 'blue' ? '#3b82f6' : '#f59e0b') :
-                                'rgba(255,255,255,0.3)',
-                            border: '2px solid white',
-                            transition: 'all 0.3s ease'
-                        }}
-                    />
-                ))}
-            </div>
+            {/* Controls Panel */}
+            <div className="fixed top-4 left-4 z-50 bg-black/80 backdrop-blur-sm rounded-lg p-4 text-white">
+                <h2 className="text-lg font-bold mb-4">Controls</h2>
 
-            {/* Scroll instructions */}
-            <div style={{
-                position: 'fixed',
-                bottom: '20px',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                color: 'white',
-                fontSize: '18px',
-                zIndex: 10,
-                textAlign: 'center',
-                background: 'rgba(0,0,0,0.5)',
-                padding: '15px 30px',
-                borderRadius: '25px',
-                backdropFilter: 'blur(10px)'
-            }}>
-                Scroll to cycle through themes
-                <div style={{ fontSize: '14px', opacity: 0.8, marginTop: '5px' }}>
-                    Purple → Forest → Blue → Gold
+                <div className="space-y-3">
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Theme: {theme}</label>
+                        <select
+                            value={theme}
+                            onChange={(e) => setTheme(e.target.value as any)}
+                            className="w-full bg-gray-800 text-white rounded px-3 py-2"
+                        >
+                            <option value="purple">Purple</option>
+                            <option value="blue">Blue</option>
+                            <option value="forest">Forest</option>
+                            <option value="gold">Gold</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">
+                            Speed: {rotationSpeed}
+                        </label>
+                        <input
+                            type="range"
+                            min="0.1"
+                            max="3.0"
+                            step="0.1"
+                            value={rotationSpeed}
+                            onChange={(e) => setRotationSpeed(parseFloat(e.target.value))}
+                            className="w-full"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                checked={debugSeam}
+                                onChange={(e) => setDebugSeam(e.target.checked)}
+                                className="rounded"
+                            />
+                            <span className="text-sm">Debug</span>
+                        </label>
+                    </div>
                 </div>
             </div>
 
-            {/* Scrollable content to drive the theme changes */}
-            <div style={{ height: '800vh', position: 'relative', zIndex: 2 }}>
-                {/* Theme sections with subtle visual indicators */}
-                <div style={{ height: '200vh', position: 'relative' }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'white',
-                        fontSize: '48px',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        textShadow: '0 4px 20px rgba(0,0,0,0.8)',
-                        zIndex: 5
-                    }}>
-                        Purple Plasma
-                        <div style={{ fontSize: '24px', opacity: 0.8, marginTop: '10px' }}>
-                            0% - 25%
-                        </div>
-                    </div>
-                </div>
-
-                <div style={{ height: '200vh', position: 'relative' }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'white',
-                        fontSize: '48px',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        textShadow: '0 4px 20px rgba(0,0,0,0.8)',
-                        zIndex: 5
-                    }}>
-                        Forest Energy
-                        <div style={{ fontSize: '24px', opacity: 0.8, marginTop: '10px' }}>
-                            25% - 50%
-                        </div>
-                    </div>
-                </div>
-
-                <div style={{ height: '200vh', position: 'relative' }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'white',
-                        fontSize: '48px',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        textShadow: '0 4px 20px rgba(0,0,0,0.8)',
-                        zIndex: 5
-                    }}>
-                        Blue Cosmos
-                        <div style={{ fontSize: '24px', opacity: 0.8, marginTop: '10px' }}>
-                            50% - 75%
-                        </div>
-                    </div>
-                </div>
-
-                <div style={{ height: '200vh', position: 'relative' }}>
-                    <div style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        color: 'white',
-                        fontSize: '48px',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        textShadow: '0 4px 20px rgba(0,0,0,0.8)',
-                        zIndex: 5
-                    }}>
-                        Golden Radiance
-                        <div style={{ fontSize: '24px', opacity: 0.8, marginTop: '10px' }}>
-                            75% - 100%
-                        </div>
-                    </div>
-                </div>
+            {/* Content for scrolling */}
+            <div className="relative z-10">
+                {/* Theme sections for scrolling */}
+                <section className="min-h-screen"></section>
+                <section className="min-h-screen"></section>
+                <section className="min-h-screen"></section>
+                <section className="min-h-screen"></section>
+                <section className="min-h-screen"></section>
             </div>
         </div>
     );

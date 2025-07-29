@@ -6,11 +6,12 @@ import { useEffect, useState } from 'react';
 import Lenis from 'lenis';
 import MainLayout from '@/components/layout/MainLayout';
 import ModernBlackHoleBackground from '@/components/ui/ModernBlackHoleBackground/ModernBlackHoleBackground';
-import AlchemysticBanner from '@/components/ui/AlchemysticBanner/AlchemysticBanner';
+import HomeNavPill from '@/components/ui/HomeNavPill/HomeNavPill';
 
 export default function Home() {
   const [scrollStep, setScrollStep] = useState(0);
   const [currentTheme, setCurrentTheme] = useState<'purple' | 'blue' | 'forest' | 'gold'>('purple');
+  const [scrollDirection, setScrollDirection] = useState<'up' | 'down'>('down');
 
   useEffect(() => {
     // Initialize Lenis smooth scroll
@@ -30,8 +31,11 @@ export default function Home() {
     requestAnimationFrame(raf);
 
     // Handle scroll progress
-    lenis.on('scroll', (e: { progress: number }) => {
+    lenis.on('scroll', (e: { progress: number; direction: number }) => {
       const progress = e.progress;
+
+      // Track scroll direction
+      setScrollDirection(e.direction > 0 ? 'down' : 'up');
 
       // Determine scroll step (0-3)
       const step = Math.floor(progress * 4);
@@ -67,9 +71,9 @@ export default function Home() {
   return (
     <MainLayout>
       <div className="relative min-h-screen">
-        {/* ALCHEMYSTIC Banner that transforms to navbar */}
+        {/* Home Nav Pill - stays as pill throughout scroll */}
         <div className="relative z-50">
-          <AlchemysticBanner page="home" theme={currentTheme} />
+          <HomeNavPill theme={currentTheme} scrollStep={scrollStep} scrollDirection={scrollDirection} />
         </div>
 
         {/* Modern WebGL Background System */}

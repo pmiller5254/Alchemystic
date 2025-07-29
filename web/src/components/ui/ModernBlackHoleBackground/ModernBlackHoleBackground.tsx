@@ -237,7 +237,6 @@ export default function ModernBlackHoleBackground({
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
     const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
     const diskRef = useRef<THREE.Mesh | null>(null);
-    const particlesRef = useRef<THREE.Points | null>(null);
     const animationRef = useRef<number | null>(null);
 
     // Theme colors
@@ -324,96 +323,96 @@ export default function ModernBlackHoleBackground({
         scene.add(disk);
         diskRef.current = disk;
 
-        // Create background stars in the corners of the universe
-        const starCount = 40;
-        const starGeometry = new THREE.BufferGeometry();
-        const starPositions = new Float32Array(starCount * 3);
-        const starColors = new Float32Array(starCount * 3);
+        // Star/particle system disabled for now
+        // const starCount = 40;
+        // const starGeometry = new THREE.BufferGeometry();
+        // const starPositions = new Float32Array(starCount * 3);
+        // const starColors = new Float32Array(starCount * 3);
 
-        for (let i = 0; i < starCount; i++) {
-            // Place stars in the four corners of the screen
-            const corner = Math.floor(i / 10); // 10 stars per corner
-            const cornerIndex = i % 10;
+        // for (let i = 0; i < starCount; i++) {
+        //     // Place stars in the four corners of the screen
+        //     const corner = Math.floor(i / 10); // 10 stars per corner
+        //     const cornerIndex = i % 10;
 
-            let x, y;
-            const cornerDistance = 0.3 + Math.random() * 0.15; // Distance from exact corner
-            const cornerSpread = 0.2 + Math.random() * 0.15; // Spread within corner area
+        //     let x, y;
+        //     const cornerDistance = 0.3 + Math.random() * 0.15; // Distance from exact corner
+        //     const cornerSpread = 0.2 + Math.random() * 0.15; // Spread within corner area
 
-            switch (corner) {
-                case 0: // Top-left
-                    x = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
-                    y = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
-                    break;
-                case 1: // Top-right
-                    x = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
-                    y = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
-                    break;
-                case 2: // Bottom-left
-                    x = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
-                    y = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
-                    break;
-                case 3: // Bottom-right
-                default:
-                    x = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
-                    y = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
-                    break;
-            }
+        //     switch (corner) {
+        //         case 0: // Top-left
+        //             x = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
+        //             y = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
+        //             break;
+        //         case 1: // Top-right
+        //             x = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
+        //             y = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
+        //             break;
+        //         case 2: // Bottom-left
+        //             x = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
+        //             y = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
+        //             break;
+        //         case 3: // Bottom-right
+        //         default:
+        //             x = (min / 2) - cornerDistance * min - cornerSpread * min * Math.random();
+        //             y = (-min / 2) + cornerDistance * min + cornerSpread * min * Math.random();
+        //             break;
+        //     }
 
-            starPositions[i * 3] = x;
-            starPositions[i * 3 + 1] = y;
-            starPositions[i * 3 + 2] = 0;
+        //     starPositions[i * 3] = x;
+        //     starPositions[i * 3 + 1] = y;
+        //     starPositions[i * 3 + 2] = 0;
 
-            // Mix of white and theme-colored stars
-            const isThemed = Math.random() > 0.8;
-            if (isThemed) {
-                const color = themeColors[theme].accent;
-                starColors[i * 3] = color.r * 0.7;
-                starColors[i * 3 + 1] = color.g * 0.7;
-                starColors[i * 3 + 2] = color.b * 0.7;
-            } else {
-                const brightness = 0.5 + Math.random() * 0.4;
-                starColors[i * 3] = brightness;
-                starColors[i * 3 + 1] = brightness;
-                starColors[i * 3 + 2] = brightness;
-            }
-        }
+        //     // Mix of white and theme-colored stars
+        //     const isThemed = Math.random() > 0.8;
+        //     if (isThemed) {
+        //         const color = themeColors[theme].accent;
+        //         starColors[i * 3] = color.r * 0.7;
+        //         starColors[i * 3 + 1] = color.g * 0.7;
+        //         starColors[i * 3 + 2] = color.b * 0.7;
+        //     } else {
+        //         const brightness = 0.5 + Math.random() * 0.4;
+        //         starColors[i * 3] = brightness;
+        //         starColors[i * 3 + 1] = brightness;
+        //         starColors[i * 3 + 2] = brightness;
+        //     }
+        // }
 
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
+        // starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        // starGeometry.setAttribute('color', new THREE.BufferAttribute(starColors, 3));
 
-        // Create star texture (smaller, twinkly points)
-        const createStarTexture = () => {
-            const canvas = document.createElement('canvas');
-            canvas.width = 16;
-            canvas.height = 16;
-            const ctx = canvas.getContext('2d')!;
+        // Star texture and material creation disabled
+        // const createStarTexture = () => {
+        //     const canvas = document.createElement('canvas');
+        //     canvas.width = 16;
+        //     canvas.height = 16;
+        //     const ctx = canvas.getContext('2d')!;
 
-            // Create bright center point for stars
-            const gradient = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
-            gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.8)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        //     // Create bright center point for stars
+        //     const gradient = ctx.createRadialGradient(8, 8, 0, 8, 8, 8);
+        //     gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        //     gradient.addColorStop(0.3, 'rgba(255, 255, 255, 0.8)');
+        //     gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, 16, 16);
+        //     ctx.fillStyle = gradient;
+        //     ctx.fillRect(0, 0, 16, 16);
 
-            return new THREE.CanvasTexture(canvas);
-        };
+        //     return new THREE.CanvasTexture(canvas);
+        // };
 
-        // Star material
-        const starMaterial = new THREE.PointsMaterial({
-            size: min * 0.003, // Smaller for distant stars
-            map: createStarTexture(),
-            transparent: true,
-            opacity: 0.7,
-            vertexColors: true,
-            blending: THREE.AdditiveBlending,
-            sizeAttenuation: false
-        });
+        // // Star material
+        // const starMaterial = new THREE.PointsMaterial({
+        //     size: min * 0.003, // Smaller for distant stars
+        //     map: createStarTexture(),
+        //     transparent: true,
+        //     opacity: 0.7,
+        //     vertexColors: true,
+        //     blending: THREE.AdditiveBlending,
+        //     sizeAttenuation: false
+        // });
 
-        const stars = new THREE.Points(starGeometry, starMaterial);
-        scene.add(stars);
-        particlesRef.current = stars; // Store stars reference for now
+        // const stars = new THREE.Points(starGeometry, starMaterial);
+        // scene.add(stars);
+        // particlesRef.current = stars; // Store stars reference for now
 
         // Add to DOM
         mountElement.appendChild(renderer.domElement);
@@ -432,30 +431,30 @@ export default function ModernBlackHoleBackground({
                 diskMaterial.uniforms.uMinDimension.value = Math.min(window.innerWidth, window.innerHeight);
             }
 
-            // Add subtle star twinkling effect for corner stars
-            if (particlesRef.current) {
-                const colors = particlesRef.current.geometry.attributes.color.array as Float32Array;
+            // Star animation disabled
+            // if (particlesRef.current) {
+            //     const colors = particlesRef.current.geometry.attributes.color.array as Float32Array;
 
-                for (let i = 0; i < starCount; i++) {
-                    // Subtle twinkling by adjusting brightness
-                    const twinkle = 0.8 + 0.2 * Math.sin(time * 2 + i * 0.5);
+            //     for (let i = 0; i < starCount; i++) {
+            //         // Subtle twinkling by adjusting brightness
+            //         const twinkle = 0.8 + 0.2 * Math.sin(time * 2 + i * 0.5);
 
-                    // Update star colors with twinkling
-                    if (i % 5 === 0) { // Some themed stars
-                        const color = themeColors[theme].accent;
-                        colors[i * 3] = color.r * 0.7 * twinkle;
-                        colors[i * 3 + 1] = color.g * 0.7 * twinkle;
-                        colors[i * 3 + 2] = color.b * 0.7 * twinkle;
-                    } else {
-                        const brightness = 0.6 * twinkle;
-                        colors[i * 3] = brightness;
-                        colors[i * 3 + 1] = brightness;
-                        colors[i * 3 + 2] = brightness;
-                    }
-                }
+            //         // Update star colors with twinkling
+            //         if (i % 5 === 0) { // Some themed stars
+            //             const color = themeColors[theme].accent;
+            //             colors[i * 3] = color.r * 0.7 * twinkle;
+            //             colors[i * 3 + 1] = color.g * 0.7 * twinkle;
+            //             colors[i * 3 + 2] = color.b * 0.7 * twinkle;
+            //         } else {
+            //             const brightness = 0.6 * twinkle;
+            //             colors[i * 3] = brightness;
+            //             colors[i * 3 + 1] = brightness;
+            //             colors[i * 3 + 2] = brightness;
+            //         }
+            //     }
 
-                particlesRef.current.geometry.attributes.color.needsUpdate = true;
-            }
+            //     particlesRef.current.geometry.attributes.color.needsUpdate = true;
+            // }
 
             renderer.render(scene, camera);
             animationRef.current = requestAnimationFrame(animate);
@@ -475,10 +474,7 @@ export default function ModernBlackHoleBackground({
             camera.bottom = -min / 2;
             camera.updateProjectionMatrix();
 
-            // Update star size for new viewport
-            if (starMaterial) {
-                starMaterial.size = min * 0.003;
-            }
+            // Star resize handling disabled
         };
         window.addEventListener('resize', handleResize);
 
@@ -506,23 +502,23 @@ export default function ModernBlackHoleBackground({
         }
     }, [scrollProgress]);
 
-    // Update star colors when theme changes
-    useEffect(() => {
-        if (particlesRef.current) {
-            const colors = particlesRef.current.geometry.attributes.color.array as Float32Array;
+    // Star theme updates disabled
+    // useEffect(() => {
+    //     if (particlesRef.current) {
+    //         const colors = particlesRef.current.geometry.attributes.color.array as Float32Array;
 
-            for (let i = 0; i < 40; i++) { // starCount
-                if (i % 5 === 0) { // Some themed stars
-                    const color = themeColors[theme].accent;
-                    colors[i * 3] = color.r * 0.7;
-                    colors[i * 3 + 1] = color.g * 0.7;
-                    colors[i * 3 + 2] = color.b * 0.7;
-                }
-            }
+    //         for (let i = 0; i < 40; i++) { // starCount
+    //             if (i % 5 === 0) { // Some themed stars
+    //                 const color = themeColors[theme].accent;
+    //                 colors[i * 3] = color.r * 0.7;
+    //                 colors[i * 3 + 1] = color.g * 0.7;
+    //                 colors[i * 3 + 2] = color.b * 0.7;
+    //             }
+    //         }
 
-            particlesRef.current.geometry.attributes.color.needsUpdate = true;
-        }
-    }, [theme, themeColors]);
+    //         particlesRef.current.geometry.attributes.color.needsUpdate = true;
+    //     }
+    // }, [theme, themeColors]);
 
     return (
         <div
