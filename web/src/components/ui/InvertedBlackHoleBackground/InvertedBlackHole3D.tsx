@@ -4,7 +4,7 @@ import React, { useRef, useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { motion } from 'framer-motion';
+
 import './InvertedBlackHoleBackground.css';
 
 interface InvertedBlackHole3DProps {
@@ -112,14 +112,7 @@ const fragmentShader = `
     }
 `;
 
-// --- Inline background shader code ---
-const bgVertexShader = `
-    varying vec2 vUv;
-    void main() {
-        vUv = uv;
-        gl_Position = vec4(position, 1.0);
-    }
-`;
+
 
 // Comment out background shader code
 // const bgFragmentShader = `
@@ -180,7 +173,7 @@ export default function InvertedBlackHole3D({
     theme = 'purple',
     animationEngine = 'gsap',
     rotationSpeed = 1.0,
-    onTransitionStateChange,
+
     debugSeam = false,
     showFluidEffect = false,
     fluidColWidth = 1.5,
@@ -195,15 +188,13 @@ export default function InvertedBlackHole3D({
     const sphereRef = useRef<THREE.Mesh | null>(null);
     const animationRef = useRef<number | null>(null);
 
-    const canvasSize = 1000; // Enlarged by 2.5x from 400px
+
 
     // Framer Motion state for rotation
-    const [rotation, setRotation] = useState({ x: 0, y: 0, z: 0 });
+
 
     // Theme transition state
-    const [isTransitioning, setIsTransitioning] = useState(false);
-    const [isLoaded, setIsLoaded] = useState(false);
-    const previousTheme = useRef(theme);
+
 
     // Theme colors
     const themeColors = useMemo(() => ({
@@ -366,7 +357,7 @@ export default function InvertedBlackHole3D({
         mountElement.appendChild(renderer.domElement);
 
         // Mark as loaded after initial setup
-        setIsLoaded(true);
+        // setIsLoaded(true);
 
         // --- Add fullscreen background shader canvas ---
         // Create background renderer
@@ -503,23 +494,10 @@ export default function InvertedBlackHole3D({
     //     // All GSAP restoration code disabled for scroll-based rotation
     // }, [isTransitioning, animationEngine, rotationSpeed]);
 
-    // Framer Motion rotation animation
-    useEffect(() => {
-        if (animationEngine === 'framer') {
-            const interval = setInterval(() => {
-                setRotation(prev => ({
-                    x: prev.x + 0.003 * rotationSpeed,
-                    y: prev.y + 0.008 * rotationSpeed,
-                    z: prev.z + 0.001 * rotationSpeed
-                }));
-            }, 16); // ~60fps
-
-            return () => clearInterval(interval);
-        } else {
-            // Reset rotation when switching to GSAP
-            setRotation({ x: 0, y: 0, z: 0 });
-        }
-    }, [animationEngine, rotationSpeed]);
+    // Framer Motion rotation animation - Disabled
+    // useEffect(() => {
+    //     // Framer motion code disabled
+    // }, [animationEngine, rotationSpeed]);
 
     // Update scroll-related uniforms (separate from scene creation)
     useEffect(() => {
@@ -552,7 +530,7 @@ export default function InvertedBlackHole3D({
 
     // Update theme colors with smooth transition during spin
     useEffect(() => {
-        if (sphereRef.current?.material && !isTransitioning) {
+        if (sphereRef.current?.material) {
             const sphereMaterial = sphereRef.current.material as THREE.ShaderMaterial;
             const colors = themeColors[theme];
 
@@ -560,7 +538,7 @@ export default function InvertedBlackHole3D({
             sphereMaterial.uniforms.themeColor.value = colors.primary;
             sphereMaterial.uniforms.themeColorSecondary.value = colors.secondary;
         }
-    }, [theme, themeColors, isTransitioning]);
+    }, [theme, themeColors]);
 
     // Update debug seam uniform
     useEffect(() => {

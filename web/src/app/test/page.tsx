@@ -52,8 +52,8 @@ export default function TestPage() {
                 by={1}
                 color1="#000000"
                 color2="#000000"
-                color3={theme === 'purple' ? '#8b5cf6' : theme === 'blue' ? '#3b82f6' : theme === 'forest' ? '#10b981' : '#f59e0b'}
-                color4="#000000"
+                color3="#000000"
+                color4={theme === 'purple' ? '#8b5cf6' : theme === 'blue' ? '#3b82f6' : theme === 'forest' ? '#10b981' : '#f59e0b'}
             />
 
             {/* Fixed sphere background */}
@@ -73,7 +73,7 @@ export default function TestPage() {
                         <label className="block text-sm font-medium mb-2">Theme: {theme}</label>
                         <select
                             value={theme}
-                            onChange={(e) => setTheme(e.target.value as any)}
+                            onChange={(e) => setTheme(e.target.value as 'purple' | 'blue' | 'forest' | 'gold')}
                             className="w-full bg-gray-800 text-white rounded px-3 py-2"
                         >
                             <option value="purple">Purple</option>

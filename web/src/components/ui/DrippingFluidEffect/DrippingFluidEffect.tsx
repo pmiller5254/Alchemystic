@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo } from 'react';
-import { gsap } from 'gsap';
+
 
 interface DrippingFluidEffectProps {
     scrollProgress?: number;
@@ -192,7 +192,7 @@ export default function DrippingFluidEffect({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl') as WebGLRenderingContext;
         if (!gl) {
             console.error('WebGL not supported');
             return;
@@ -237,7 +237,7 @@ export default function DrippingFluidEffect({
         gl.useProgram(program);
 
         // Get uniforms
-        const uniforms: any = {};
+        const uniforms: Record<string, WebGLUniformLocation | null> = {};
         const uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
         for (let i = 0; i < uniformCount; i++) {
             const uniform = gl.getActiveUniform(program, i);
@@ -245,7 +245,7 @@ export default function DrippingFluidEffect({
                 uniforms[uniform.name] = gl.getUniformLocation(program, uniform.name);
             }
         }
-        uniformsRef.current = uniforms;
+        uniformsRef.current = uniforms as any;
 
         // Create geometry
         const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
@@ -277,7 +277,7 @@ export default function DrippingFluidEffect({
         if (uniforms.u_speed) gl.uniform1f(uniforms.u_speed, params.speed);
         if (uniforms.u_scale) gl.uniform1f(uniforms.u_scale, params.scale);
         if (uniforms.u_seed) gl.uniform1f(uniforms.u_seed, params.seed);
-        if (uniforms.u_opacity) gl.uniform1f(uniforms.u_opacity, params.opacity);
+        if (uniforms.u_opacity) gl.uniform1f(uniforms.u_opacity, 1.0);
 
         // Enable blending
         gl.enable(gl.BLEND);

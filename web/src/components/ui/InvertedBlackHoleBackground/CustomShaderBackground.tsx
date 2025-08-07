@@ -190,40 +190,81 @@ export default function CustomShaderBackground({
         mountElement.appendChild(renderer.domElement);
 
         // Animation loop
-        const startTime = Date.now();
+        let startTime = Date.now();
         const animate = () => {
-            const time = (Date.now() - startTime) / 1000;
+            try {
+                const time = (Date.now() - startTime) / 1000;
 
-            if (material.uniforms.time) {
-                material.uniforms.time.value = time;
+                // Reset time if it gets too large to prevent overflow
+                if (time > 1000000) {
+                    startTime = Date.now();
+                }
+
+                if (material.uniforms.time) {
+                    material.uniforms.time.value = time;
+                }
+
+                renderer.render(scene, camera);
+                animationRef.current = requestAnimationFrame(animate);
+            } catch (error) {
+                console.error('CustomShaderBackground animation error:', error);
+                // Restart animation on error
+                animationRef.current = requestAnimationFrame(animate);
             }
-
-            renderer.render(scene, camera);
-            animationRef.current = requestAnimationFrame(animate);
         };
         animate();
 
         // Handle resize
         const handleResize = () => {
-            const { width, height } = getSize();
-            renderer.setSize(width, height);
-            if (material.uniforms.resolution) {
-                material.uniforms.resolution.value.set(width, height);
+            try {
+                const { width, height } = getSize();
+                renderer.setSize(width, height);
+                if (material.uniforms.resolution) {
+                    material.uniforms.resolution.value.set(width, height);
+                }
+            } catch (error) {
+                console.error('CustomShaderBackground resize error:', error);
             }
         };
         window.addEventListener('resize', handleResize);
 
+        // WebGL context recovery for tab visibility changes
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                // Reinitialize shader state when tab becomes visible
+                if (material.uniforms.time) {
+                    material.uniforms.time.value = 0;
+                }
+                console.log('CustomShaderBackground: Tab became visible, reset shader state');
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         return () => {
             window.removeEventListener('resize', handleResize);
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+
             if (animationRef.current) {
                 cancelAnimationFrame(animationRef.current);
             }
+
             if (mountElement && renderer.domElement) {
                 mountElement.removeChild(renderer.domElement);
             }
-            renderer.dispose();
-            geometry.dispose();
-            material.dispose();
+
+            // Properly dispose of Three.js objects
+            if (material) {
+                material.dispose();
+            }
+            if (geometry) {
+                geometry.dispose();
+            }
+            if (renderer) {
+                renderer.dispose();
+            }
+
+            console.log('CustomShaderBackground: Cleanup completed');
         };
     }, [scale, ax, ay, az, aw, bx, by]); // Remove colors from dependency array
 
