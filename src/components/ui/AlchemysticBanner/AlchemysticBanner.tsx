@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
@@ -54,7 +56,6 @@ export default function AlchemysticBanner({ className = '', page = 'nourish', th
         const pillWidth = isMobile ? "70%" : isTablet ? "50%" : "33.333%";
         const pillHeight = isMobile ? "45px" : isTablet ? "50px" : "60px";
         const pillRadius = isMobile ? "22.5px" : isTablet ? "25px" : "30px";
-        const textSize = isMobile ? "1rem" : isTablet ? "1.2rem" : "1.5rem";
 
         // Ensure banner starts in initial banner state (not pill)
         gsap.set(banner, {
@@ -315,7 +316,7 @@ export default function AlchemysticBanner({ className = '', page = 'nourish', th
                         padding: '8px'
                     }}
                 >
-                    <a
+                    <Link
                         href="/"
                         style={{
                             height: '100%',
@@ -328,9 +329,11 @@ export default function AlchemysticBanner({ className = '', page = 'nourish', th
                             borderRadius: '30px 0 0 30px'
                         }}
                     >
-                        <img
+                        <Image
                             src="/download.png"
                             alt="Alchemystic Logo"
+                            width={120}
+                            height={40}
                             style={{
                                 height: '100%',
                                 width: 'auto',
@@ -339,7 +342,7 @@ export default function AlchemysticBanner({ className = '', page = 'nourish', th
                                 pointerEvents: 'none'
                             }}
                         />
-                    </a>
+                    </Link>
                 </div>
 
                 {/* Empty space section (middle 20%) */}
@@ -363,7 +366,7 @@ export default function AlchemysticBanner({ className = '', page = 'nourish', th
                     {quickLinks.map((link, index) => (
                         <div key={index} style={{ display: 'flex', height: '100%', flex: 1 }}>
                             {/* Link section - fully clickable */}
-                            <a
+                            <Link
                                 href={link.href}
                                 className="nav-section"
                                 style={{
@@ -392,7 +395,7 @@ export default function AlchemysticBanner({ className = '', page = 'nourish', th
                                 }}
                             >
                                 {link.label}
-                            </a>
+                            </Link>
 
                             {/* Vertical divider (except after last item) */}
                             {index < quickLinks.length - 1 && (

@@ -13,6 +13,7 @@ export default function MultiSphereSystem({ scrollProgress = 0 }: MultiSphereSys
     
     // Calculate which sphere should be visible based on scroll progress
     const currentSphereIndex = Math.floor(scrollProgress * themes.length);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const currentTheme = themes[currentSphereIndex] || themes[0];
 
     return (
