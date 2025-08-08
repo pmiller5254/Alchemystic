@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo, useState } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -171,6 +171,9 @@ const fragmentShader = `
 export default function InvertedBlackHole3D({
     scrollProgress = 0,
     theme = 'purple',
+    animationEngine = 'gsap',
+    rotationSpeed = 1.0,
+
     debugSeam = false,
     showFluidEffect = false,
     fluidColWidth = 1.5,
@@ -217,7 +220,6 @@ export default function InvertedBlackHole3D({
         }
     }), []);
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         console.log('InvertedBlackHole3D useEffect running');
         if (!mountRef.current) {

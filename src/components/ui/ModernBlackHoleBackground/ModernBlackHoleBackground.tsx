@@ -165,7 +165,68 @@ const fragmentShader = `
     }
 `;
 
-// Removed unused particle shaders to satisfy lint rules
+// Particle system vertex shader
+const particleVertexShader = `
+    attribute float size;
+    attribute float speed;
+    attribute float offset;
+    attribute vec3 color;
+    
+    uniform float time;
+    
+    varying vec3 vColor;
+    varying float vAlpha;
+    
+    void main() {
+        vColor = color;
+        
+        // Calculate particle position with orbital motion
+        float angle = position.z + time * speed + offset;
+        float radius = length(position.xy);
+        
+        // Simple circular orbit with some variation
+        vec3 pos = vec3(
+            radius * cos(angle),
+            radius * sin(angle),
+            0.0
+        );
+        
+        // Add slight orbital variation
+        pos.x += 0.05 * sin(time * 0.3 + offset);
+        pos.y += 0.05 * cos(time * 0.3 + offset);
+        
+        vec4 mvPosition = modelViewMatrix * vec4(pos, 1.0);
+        gl_PointSize = size * 100.0; // Fixed size for consistency
+        gl_Position = projectionMatrix * mvPosition;
+        
+        // Fade particles based on distance from center (adjusted for smaller disk)
+        float dist = length(pos.xy);
+        vAlpha = 1.0 - smoothstep(0.25, 0.4, dist);
+        
+        // Ensure particles very close to center are invisible (black hole effect)
+        vAlpha *= smoothstep(0.15, 0.2, dist);
+        vAlpha = clamp(vAlpha, 0.0, 1.0);
+    }
+`;
+
+// Particle fragment shader
+const particleFragmentShader = `
+    varying vec3 vColor;
+    varying float vAlpha;
+    
+    void main() {
+        vec2 center = gl_PointCoord - 0.5;
+        float dist = length(center);
+        
+        if (dist > 0.5) discard;
+        
+        // Simple circular fade
+        float alpha = (1.0 - dist * 2.0) * vAlpha;
+        alpha = clamp(alpha, 0.0, 1.0);
+        
+        gl_FragColor = vec4(vColor, alpha);
+    }
+`;
 
 export default function ModernBlackHoleBackground({
     scrollProgress = 0,

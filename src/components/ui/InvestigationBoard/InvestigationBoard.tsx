@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
 import './InvestigationBoard.css';
 
 interface PhotoItem {
@@ -18,7 +17,7 @@ interface InvestigationBoardProps {
 }
 
 export default function InvestigationBoard({ photos = [] }: InvestigationBoardProps) {
-    const defaultPhotos: PhotoItem[] = [
+    const [boardPhotos, setBoardPhotos] = useState<PhotoItem[]>([
         {
             id: '1',
             title: 'Ancient Artifact',
@@ -67,9 +66,7 @@ export default function InvestigationBoard({ photos = [] }: InvestigationBoardPr
             position: { x: 350, y: 320 },
             connections: ['4', '5']
         }
-    ];
-
-    const [boardPhotos, setBoardPhotos] = useState<PhotoItem[]>(photos.length ? photos : defaultPhotos);
+    ]);
 
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -173,7 +170,7 @@ export default function InvestigationBoard({ photos = [] }: InvestigationBoardPr
                         >
                             <div className="photo-pin"></div>
                             <div className="photo-image">
-                                <Image src={photo.imageUrl} alt={photo.title} width={150} height={150} />
+                                <img src={photo.imageUrl} alt={photo.title} />
                             </div>
                             <div className="photo-info">
                                 <h3>{photo.title}</h3>

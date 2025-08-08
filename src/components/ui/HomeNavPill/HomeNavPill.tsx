@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import './HomeNavPill.css';
 
@@ -110,7 +108,7 @@ export default function HomeNavPill({ className = '', theme, scrollStep = 0, scr
                     padding: '8px'
                 }}
             >
-                <Link
+                <a
                     href="/"
                     style={{
                         height: '100%',
@@ -123,11 +121,9 @@ export default function HomeNavPill({ className = '', theme, scrollStep = 0, scr
                         borderRadius: '30px 0 0 30px'
                     }}
                 >
-                    <Image
+                    <img
                         src="/download.png"
                         alt="Alchemystic Logo"
-                        width={120}
-                        height={40}
                         style={{
                             height: '100%',
                             width: 'auto',
@@ -136,7 +132,7 @@ export default function HomeNavPill({ className = '', theme, scrollStep = 0, scr
                             pointerEvents: 'none'
                         }}
                     />
-                </Link>
+                </a>
             </div>
 
             {/* Empty space section (middle 20%) */}
@@ -160,8 +156,8 @@ export default function HomeNavPill({ className = '', theme, scrollStep = 0, scr
                 {quickLinks.map((link, index) => (
                     <div key={index} style={{ display: 'flex', height: '100%', flex: 1 }}>
                         {/* Link section - fully clickable with animated text */}
-                        <Link href={link.href} className="nav-section" style={{ height: '100%', width: '100%' }}>
-                        <motion.div
+                        <motion.a
+                            href={link.href}
                             className="nav-section"
                             style={{
                                 height: '100%',
@@ -216,8 +212,7 @@ export default function HomeNavPill({ className = '', theme, scrollStep = 0, scr
                                     {link.label}
                                 </motion.span>
                             </AnimatePresence>
-                        </motion.div>
-                        </Link>
+                        </motion.a>
 
                         {/* Vertical divider (except after last item) */}
                         {index < quickLinks.length - 1 && (

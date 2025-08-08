@@ -122,7 +122,6 @@ export default function MultiSphere3DSpace({ scrollProgress = 0 }: MultiSphere3D
     `;
 
     // Initialize the 3D scene
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (!mountRef.current) return;
 
@@ -215,7 +214,7 @@ export default function MultiSphere3DSpace({ scrollProgress = 0 }: MultiSphere3D
             const time = Date.now() * 0.001;
 
             // Update sphere materials and add individual rotation
-            spheresRef.current.forEach((sphere) => {
+            spheresRef.current.forEach((sphere, index) => {
                 sphere.material.uniforms.time.value = time;
                 sphere.material.uniforms.scrollProgress.value = scrollProgress;
                 

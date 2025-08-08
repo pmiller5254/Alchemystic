@@ -204,7 +204,6 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
     const spheresRef = useRef<SphereData[]>([]);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const animationRef = useRef<number | null>(null);
 
     // Camera control state
@@ -253,7 +252,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
     const triggerCameraTransition = () => {
         if (isTransitioning) return;
         setIsTransitioning(true);
-        // startPosition not used beyond initialization
+        const startPosition = isCloseUp ? { x: 12, y: -1.5, z: 0 } : { x: 12, y: 20, z: 0 };
         const endPosition = isCloseUp ? { x: 12, y: 20, z: 0 } : { x: 12, y: -1.5, z: 0 };
         gsap.to(cameraPositionRef.current, {
             x: endPosition.x,
@@ -440,7 +439,9 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                 let newHoveredId: string | null = null;
                 if (intersects.length > 0) {
                     const intersectedObject = intersects[0].object as THREE.Mesh;
-                    newHoveredId = intersectedObject.uuid;
+                    if (intersectedObject.userData && intersectedObject.userData.theme) {
+                        newHoveredId = intersectedObject.uuid;
+                    }
                 }
                 if (newHoveredId !== hoveredPlanetRef.current) { // Use ref instead of state
                     const foundSphere = spheresRef.current.find(s => s.mesh.uuid === newHoveredId);
@@ -500,9 +501,8 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
             preserveDrawingBuffer: true,
             premultipliedAlpha: false
         });
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { width, height } = getSize();
-        // globeRadius is embedded in geometry creation
+        const globeRadius = 1.5; // Same as working sphere
         renderer.setClearColor(0x000000, 1); // Black background
 
         // Set renderer to fill the full viewport
