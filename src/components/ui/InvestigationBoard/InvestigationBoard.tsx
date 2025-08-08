@@ -107,7 +107,7 @@ export default function InvestigationBoard({ photos = [] }: InvestigationBoardPr
     };
 
     const renderConnections = () => {
-        const connections: JSX.Element[] = [];
+        const connections: React.ReactElement[] = [];
 
         boardPhotos.forEach(photo => {
             photo.connections.forEach(connectedId => {
