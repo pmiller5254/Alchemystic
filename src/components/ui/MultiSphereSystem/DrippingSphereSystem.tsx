@@ -450,8 +450,10 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                     // setHoveredPlanet(hoveredPlanetRef.current); // This line is removed as per the edit hint
                 }
             }
-            const rotationAngle = scrollProgress * Math.PI * 2;
-            if (sceneRef.current) sceneRef.current.rotation.y = rotationAngle;
+            // Replace scroll-based rotation with gentle automatic rotation
+            if (sceneRef.current && !hoveredPlanetRef.current) {
+                sceneRef.current.rotation.y += 0.0004; // very gentle spin
+            }
             if (rendererRef.current && sceneRef.current && cameraRef.current) {
                 rendererRef.current.render(sceneRef.current, cameraRef.current);
             }
