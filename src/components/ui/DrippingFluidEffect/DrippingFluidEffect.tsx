@@ -169,7 +169,8 @@ export default function DrippingFluidEffect({
 }: DrippingFluidEffectProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const glRef = useRef<WebGLRenderingContext | null>(null);
-    const uniformsRef = useRef<any>(null);
+    type UniformMap = Record<string, WebGLUniformLocation | null>;
+    const uniformsRef = useRef<UniformMap | null>(null);
     const animationRef = useRef<number | null>(null);
 
     // Theme colors for the dripping effect
@@ -237,7 +238,7 @@ export default function DrippingFluidEffect({
         gl.useProgram(program);
 
         // Get uniforms
-        const uniforms: Record<string, WebGLUniformLocation | null> = {};
+        const uniforms: UniformMap = {};
         const uniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
         for (let i = 0; i < uniformCount; i++) {
             const uniform = gl.getActiveUniform(program, i);
@@ -245,7 +246,7 @@ export default function DrippingFluidEffect({
                 uniforms[uniform.name] = gl.getUniformLocation(program, uniform.name);
             }
         }
-        uniformsRef.current = uniforms as any;
+        uniformsRef.current = uniforms;
 
         // Create geometry
         const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
@@ -305,6 +306,7 @@ export default function DrippingFluidEffect({
             gl.deleteShader(vertexShaderObj);
             gl.deleteShader(fragmentShaderObj);
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Update theme color

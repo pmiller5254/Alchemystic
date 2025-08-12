@@ -122,6 +122,7 @@ export default function MultiSphere3DSpace({ scrollProgress = 0 }: MultiSphere3D
     `;
 
     // Initialize the 3D scene
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         if (!mountRef.current) return;
 
@@ -164,7 +165,7 @@ export default function MultiSphere3DSpace({ scrollProgress = 0 }: MultiSphere3D
 
             // Create geometry (same as working sphere)
             const geometry = new THREE.SphereGeometry(globeRadius, 128, 64);
-            
+
             // Create material (exact same as working sphere)
             const material = new THREE.ShaderMaterial({
                 vertexShader,
@@ -193,11 +194,11 @@ export default function MultiSphere3DSpace({ scrollProgress = 0 }: MultiSphere3D
 
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(x, 0, z);
-            
+
             // Add some rotation to make them more dynamic
             mesh.rotation.x = Math.random() * Math.PI;
             mesh.rotation.y = Math.random() * Math.PI;
-            
+
             scene.add(mesh);
 
             spheresRef.current.push({
@@ -214,10 +215,10 @@ export default function MultiSphere3DSpace({ scrollProgress = 0 }: MultiSphere3D
             const time = Date.now() * 0.001;
 
             // Update sphere materials and add individual rotation
-            spheresRef.current.forEach((sphere, index) => {
+            spheresRef.current.forEach((sphere) => {
                 sphere.material.uniforms.time.value = time;
                 sphere.material.uniforms.scrollProgress.value = scrollProgress;
-                
+
                 // Add individual sphere rotation
                 sphere.mesh.rotation.x += 0.01;
                 sphere.mesh.rotation.y += 0.02;
@@ -232,12 +233,12 @@ export default function MultiSphere3DSpace({ scrollProgress = 0 }: MultiSphere3D
 
         animate();
 
-                // Handle resize (same as working sphere)
+        // Handle resize (same as working sphere)
         const handleResize = () => {
             if (camera && renderer) {
                 const rendererSize = Math.min(window.innerWidth, window.innerHeight) * 0.75;
                 renderer.setSize(rendererSize, rendererSize);
-                
+
                 // Update uniforms for all spheres
                 spheresRef.current.forEach(sphere => {
                     sphere.material.uniforms.uMinDimension.value = Math.min(window.innerWidth, window.innerHeight);

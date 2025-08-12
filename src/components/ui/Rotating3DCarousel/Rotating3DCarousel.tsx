@@ -5,7 +5,6 @@ import { gsap } from 'gsap';
 import { Observer } from 'gsap/Observer';
 import { useGSAP } from '@gsap/react';
 import SiteCard from '../SiteCard/SiteCard';
-import './Rotating3DCarousel.css';
 
 // Register GSAP plugins
 gsap.registerPlugin(Observer);

@@ -266,6 +266,7 @@ export default function CustomShaderBackground({
 
             console.log('CustomShaderBackground: Cleanup completed');
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [scale, ax, ay, az, aw, bx, by]); // Remove colors from dependency array
 
     // Handle color changes smoothly without recreating scene
