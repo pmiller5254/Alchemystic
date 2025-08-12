@@ -10,6 +10,7 @@ interface HomeNavPillProps {
     className?: string;
     theme?: 'purple' | 'blue' | 'forest' | 'gold';
     scrollStep?: number;
+    scrollDirection?: 'up' | 'down'; // not used internally but kept for backward compatibility
 }
 
 export default function HomeNavPill({ className = '', theme, scrollStep = 0 }: HomeNavPillProps) {
