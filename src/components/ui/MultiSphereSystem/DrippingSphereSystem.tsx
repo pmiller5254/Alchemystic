@@ -217,8 +217,8 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
     // Hover state for planets - use ref instead of state for performance
     const hoveredPlanetRef = useRef<string | null>(null);
 
-    // Mouse state for raycasting
-    const [mouse, setMouse] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+    // Mouse ref for raycasting (using ref avoids stale closures)
+    const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
     const raycaster = useRef<THREE.Raycaster>(new THREE.Raycaster());
 
     // Mouse move handler for hover detection - remove console.log
@@ -227,10 +227,10 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
             if (rendererRef.current) {
                 const canvas = rendererRef.current.domElement;
                 const rect = canvas.getBoundingClientRect();
-                setMouse({
+                mouseRef.current = {
                     x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
                     y: -((event.clientY - rect.top) / rect.height) * 2 + 1
-                });
+                };
                 // Removed console.log for performance
             }
         };
@@ -402,6 +402,8 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useGSAP(() => {
         let startTime = Date.now();
+        let lastFrame = startTime;
+        let orbitOffset = 0; // maintains continuous orbiting even when speed pauses
         const ticker = () => {
             const time = (Date.now() - startTime) / 1000;
             if (time > 1000000) {
@@ -419,21 +421,21 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                 }
                 sphere.mesh.rotation.x += config.rotationSpeedX;
                 sphere.mesh.rotation.y += config.rotationSpeedY;
-                let systemRotation = config.orbitSpeed;
-                if (hoveredPlanetRef.current) systemRotation = 0; // Use ref instead of state
-                const orbitAngle = time * systemRotation;
-                const x = Math.cos(orbitAngle + (index * config.sphereSpacing)) * config.orbitRadius;
-                const z = Math.sin(orbitAngle + (index * config.sphereSpacing)) * config.orbitRadius;
+                const now = Date.now();
+                const delta = (now - lastFrame) / 1000;
+                lastFrame = now;
+                if (!hoveredPlanetRef.current) {
+                    orbitOffset += config.orbitSpeed * delta;
+                }
+                const orbitAngle = orbitOffset + index * config.sphereSpacing;
+                const x = Math.cos(orbitAngle) * config.orbitRadius;
+                const z = Math.sin(orbitAngle) * config.orbitRadius;
                 sphere.mesh.position.x = x;
                 sphere.mesh.position.z = z;
-                if (hoveredPlanetRef.current === sphere.theme) { // Use ref instead of state
-                    sphere.mesh.scale.set(1.25, 1.25, 1.25);
-                } else {
-                    sphere.mesh.scale.set(1, 1, 1);
-                }
+
             });
             if (rendererRef.current && cameraRef.current) {
-                raycaster.current.setFromCamera(new THREE.Vector2(mouse.x, mouse.y), cameraRef.current);
+                raycaster.current.setFromCamera(new THREE.Vector2(mouseRef.current.x, mouseRef.current.y), cameraRef.current);
                 const meshes = spheresRef.current.map(s => s.mesh);
                 const intersects = raycaster.current.intersectObjects(meshes);
                 let newHoveredId: string | null = null;
@@ -443,11 +445,23 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                         newHoveredId = intersectedObject.uuid;
                     }
                 }
-                if (newHoveredId !== hoveredPlanetRef.current) { // Use ref instead of state
+                if (newHoveredId !== hoveredPlanetRef.current) {
                     const foundSphere = spheresRef.current.find(s => s.mesh.uuid === newHoveredId);
-                    hoveredPlanetRef.current = foundSphere ? foundSphere.theme : null;
-                    // Only update state if needed for UI
-                    // setHoveredPlanet(hoveredPlanetRef.current); // This line is removed as per the edit hint
+                    const newTheme = foundSphere ? foundSphere.theme : null;
+
+                    // Smoothly scale spheres: hovered one to 3x, others back to 1x
+                    spheresRef.current.forEach(sphere => {
+                        const targetScale = sphere.theme === newTheme ? 3 : 1;
+                        gsap.to(sphere.mesh.scale, {
+                            x: targetScale,
+                            y: targetScale,
+                            z: targetScale,
+                            duration: 0.3,
+                            ease: 'none'
+                        });
+                    });
+
+                    hoveredPlanetRef.current = newTheme;
                 }
             }
             // Replace scroll-based rotation with gentle automatic rotation
