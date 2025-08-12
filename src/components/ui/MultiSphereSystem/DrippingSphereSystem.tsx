@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -216,6 +218,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
 
     // Hover state for planets - use ref instead of state for performance
     const hoveredPlanetRef = useRef<string | null>(null);
+    const [hoveredTheme, setHoveredTheme] = useState<'purple' | 'blue' | 'forest' | 'gold' | null>(null);
 
     // Mouse ref for raycasting (using ref avoids stale closures)
     const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -306,6 +309,14 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
             accent: new THREE.Color(0xfbbf24)
         }
     }), []);
+
+    // Button config mapping (mirrors home page)
+    const themeButtonConfig = {
+        purple: { text: 'I seek movement and embodiment.', link: '/movement', gradient: 'linear-gradient(to right, #a78bfa, #6d28d9)' },
+        forest: { text: 'I wish to tend to land and legacy.', link: '/legacy', gradient: 'linear-gradient(to right, #22c55e, #16a34a)' },
+        blue: { text: 'I am here to co-create space.', link: '/co-create', gradient: 'linear-gradient(to right, #3b82f6, #1d4ed8)' },
+        gold: { text: 'I am called to nourish and shop.', link: '/nourish', gradient: 'linear-gradient(to right, #f59e0b, #d97706)' }
+    } as const;
 
     // Vertex shader (exact same as working sphere)
     const vertexShader = `
@@ -462,6 +473,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                     });
 
                     hoveredPlanetRef.current = newTheme;
+                    setHoveredTheme(newTheme);
                 }
             }
             // Replace scroll-based rotation with gentle automatic rotation
@@ -692,6 +704,24 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
 
     return (
         <div ref={mountRef} className="sphere-container">
+            {/* Overlay button when a planet is hovered */}
+            {hoveredTheme && (
+                <div className="fixed inset-0 flex items-center justify-center z-[100] pointer-events-none">
+                    <Link href={themeButtonConfig[hoveredTheme].link} className="pointer-events-auto">
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.25 }}
+                            className={`px-8 py-4 text-lg font-semibold text-white rounded-full shadow-2xl`}
+                            style={{ background: themeButtonConfig[hoveredTheme].gradient }}
+                        >
+                            {themeButtonConfig[hoveredTheme].text}
+                        </motion.button>
+                    </Link>
+                </div>
+            )}
+
             <CameraControlsPortal
                 cameraPosition={cameraPosition}
                 setCameraPosition={setCameraPosition}
