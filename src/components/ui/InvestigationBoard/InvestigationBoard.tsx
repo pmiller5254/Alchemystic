@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import './InvestigationBoard.css';
 
 interface PhotoItem {
@@ -12,11 +13,11 @@ interface PhotoItem {
     connections: string[]; // IDs of connected photos
 }
 
-interface InvestigationBoardProps {
+type InvestigationBoardProps = {
     photos?: PhotoItem[];
-}
+};
 
-export default function InvestigationBoard({ photos = [] }: InvestigationBoardProps) {
+export default function InvestigationBoard({ }: InvestigationBoardProps) {
     const [boardPhotos, setBoardPhotos] = useState<PhotoItem[]>([
         {
             id: '1',
@@ -170,7 +171,7 @@ export default function InvestigationBoard({ photos = [] }: InvestigationBoardPr
                         >
                             <div className="photo-pin"></div>
                             <div className="photo-image">
-                                <img src={photo.imageUrl} alt={photo.title} />
+                                <Image src={photo.imageUrl} alt={photo.title} width={150} height={150} />
                             </div>
                             <div className="photo-info">
                                 <h3>{photo.title}</h3>

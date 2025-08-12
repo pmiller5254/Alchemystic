@@ -10,10 +10,9 @@ interface MultiSphereSystemProps {
 
 export default function MultiSphereSystem({ scrollProgress = 0 }: MultiSphereSystemProps) {
     const themes: ('purple' | 'blue' | 'forest' | 'gold')[] = ['purple', 'blue', 'forest', 'gold'];
-    
+
     // Calculate which sphere should be visible based on scroll progress
     const currentSphereIndex = Math.floor(scrollProgress * themes.length);
-    const currentTheme = themes[currentSphereIndex] || themes[0];
 
     return (
         <div className="multi-sphere-container">
@@ -33,7 +32,7 @@ export default function MultiSphereSystem({ scrollProgress = 0 }: MultiSphereSys
                         zIndex: index === currentSphereIndex ? 1 : 0
                     }}
                 >
-                    <InvertedBlackHole3D 
+                    <InvertedBlackHole3D
                         theme={theme}
                         scrollProgress={scrollProgress}
                     />

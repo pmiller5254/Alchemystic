@@ -204,7 +204,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
     const spheresRef = useRef<SphereData[]>([]);
-    const animationRef = useRef<number | null>(null);
+    // removed unused animationRef
 
     // Camera control state
     const [cameraPosition, setCameraPosition] = useState({ x: 12, y: 20, z: 0 });
@@ -252,7 +252,6 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
     const triggerCameraTransition = () => {
         if (isTransitioning) return;
         setIsTransitioning(true);
-        const startPosition = isCloseUp ? { x: 12, y: -1.5, z: 0 } : { x: 12, y: 20, z: 0 };
         const endPosition = isCloseUp ? { x: 12, y: 20, z: 0 } : { x: 12, y: -1.5, z: 0 };
         gsap.to(cameraPositionRef.current, {
             x: endPosition.x,
@@ -400,6 +399,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
     `;
 
     // Optimized GSAP ticker with minimal dependencies
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useGSAP(() => {
         let startTime = Date.now();
         const ticker = () => {
@@ -501,8 +501,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
             preserveDrawingBuffer: true,
             premultipliedAlpha: false
         });
-        const { width, height } = getSize();
-        const globeRadius = 1.5; // Same as working sphere
+        getSize(); // dimensions retrieved but values unused
         renderer.setClearColor(0x000000, 1); // Black background
 
         // Set renderer to fill the full viewport
@@ -560,7 +559,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                     themeColorSecondary: { value: themeColors[theme].secondary },
                     diskIntensity: { value: 1.0 },
                     turbulence: { value: 0.5 },
-                    uMinDimension: { value: Math.min(width, height) },
+                    uMinDimension: { value: Math.min(window.innerWidth, window.innerHeight) },
                     debugSeam: { value: false }
                 }
             });
@@ -604,7 +603,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
         // Handle resize (same as working sphere)
         const handleResize = () => {
             try {
-                const { width, height } = getSize();
+                getSize();
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 camera.aspect = 1; // Keep square aspect ratio
                 camera.updateProjectionMatrix();
@@ -661,7 +660,8 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
 
             console.log('DrippingSphereSystem: Cleanup completed');
         };
-    }, []); // Re-run when camera controls change
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // run once on mount
 
     // Update scroll-related uniforms (separate from scene creation)
     useEffect(() => {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import './page.css';
+import '@/components/ui/Rotating3DCarousel/Rotating3DCarousel.css';
 import Rotating3DCarousel from '@/components/ui/Rotating3DCarousel/Rotating3DCarousel';
 import StarryBackground from '@/components/ui/StarryBackground/StarryBackground';
 import BookingModal from '@/components/ui/BookingModal/BookingModal';

@@ -1,17 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import './HomeNavPill.css';
+import Link from 'next/link';
+import Image from 'next/image';
 
 interface HomeNavPillProps {
     className?: string;
     theme?: 'purple' | 'blue' | 'forest' | 'gold';
     scrollStep?: number;
-    scrollDirection?: 'up' | 'down';
 }
 
-export default function HomeNavPill({ className = '', theme, scrollStep = 0, scrollDirection = 'down' }: HomeNavPillProps) {
+export default function HomeNavPill({ className = '', theme, scrollStep = 0 }: HomeNavPillProps) {
     const [dimensions, setDimensions] = useState({
         isMobile: false,
         isTablet: false
@@ -108,31 +109,16 @@ export default function HomeNavPill({ className = '', theme, scrollStep = 0, scr
                     padding: '8px'
                 }}
             >
-                <a
-                    href="/"
-                    style={{
-                        height: '100%',
-                        width: '100%',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        textDecoration: 'none',
-                        cursor: 'pointer',
-                        borderRadius: '30px 0 0 30px'
-                    }}
-                >
-                    <img
+                <Link href="/" className="flex h-full w-full items-center justify-center rounded-l-[30px]" passHref>
+                    <Image
                         src="/download.png"
                         alt="Alchemystic Logo"
-                        style={{
-                            height: '100%',
-                            width: 'auto',
-                            objectFit: 'contain',
-                            maxWidth: '100%',
-                            pointerEvents: 'none'
-                        }}
+                        width={120}
+                        height={40}
+                        className="h-full w-auto object-contain max-w-full pointer-events-none"
+                        priority
                     />
-                </a>
+                </Link>
             </div>
 
             {/* Empty space section (middle 20%) */}
@@ -156,63 +142,14 @@ export default function HomeNavPill({ className = '', theme, scrollStep = 0, scr
                 {quickLinks.map((link, index) => (
                     <div key={index} style={{ display: 'flex', height: '100%', flex: 1 }}>
                         {/* Link section - fully clickable with animated text */}
-                        <motion.a
-                            href={link.href}
-                            className="nav-section"
-                            style={{
-                                height: '100%',
-                                width: '100%',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: '#ffffff',
-                                fontSize: '0.875rem',
-                                fontWeight: '500',
-                                textDecoration: 'none',
-                                cursor: 'pointer',
-                                borderRadius: index === quickLinks.length - 1 ? '0 30px 30px 0' : '0',
-                                boxSizing: 'border-box',
-                                border: 'none',
-                                outline: 'none',
-                                userSelect: 'none',
-                                overflow: 'hidden',
-                                backgroundColor: 'transparent'
-                            }}
-                            whileHover={{
-                                backgroundColor: 'rgba(251, 191, 36, 0.15)',
-                                transition: { duration: 0.2 }
-                            }}
-                            whileTap={{
-                                backgroundColor: 'rgba(251, 191, 36, 0.25)',
-                                scale: 0.98,
-                                transition: { duration: 0.1 }
-                            }}
-                            initial={{ backgroundColor: 'transparent' }}
-                        >
-                            <AnimatePresence mode="wait">
-                                <motion.span
-                                    key={`${link.label}-${scrollStep}`}
-                                    initial={{
-                                        y: scrollDirection === 'down' ? 20 : -20,
-                                        opacity: 0
-                                    }}
-                                    animate={{
-                                        y: 0,
-                                        opacity: 1
-                                    }}
-                                    exit={{
-                                        y: scrollDirection === 'down' ? -20 : 20,
-                                        opacity: 0
-                                    }}
-                                    transition={{
-                                        duration: 0.4,
-                                        ease: [0.4, 0, 0.2, 1]
-                                    }}
-                                >
-                                    {link.label}
-                                </motion.span>
-                            </AnimatePresence>
-                        </motion.a>
+                        <Link href={link.href} className="flex h-full w-full items-center justify-center" prefetch={false}>
+                            <motion.div
+                                whileHover={{ backgroundColor: 'rgba(251, 191, 36, 0.15)' }}
+                                whileTap={{ backgroundColor: 'rgba(251, 191, 36, 0.25)', scale: 0.98 }}
+                            >
+                                <span>{link.label}</span>
+                            </motion.div>
+                        </Link>
 
                         {/* Vertical divider (except after last item) */}
                         {index < quickLinks.length - 1 && (

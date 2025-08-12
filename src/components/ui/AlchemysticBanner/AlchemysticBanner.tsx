@@ -6,6 +6,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import PlasmaBackground from './PlasmaBackground';
 import './AlchemysticBanner.css';
+import Link from 'next/link';
+import Image from 'next/image';
 
 // Register GSAP plugins
 gsap.registerPlugin(ScrollTrigger);
@@ -54,7 +56,6 @@ export default function AlchemysticBanner({ className = '', page = 'nourish', th
         const pillWidth = isMobile ? "70%" : isTablet ? "50%" : "33.333%";
         const pillHeight = isMobile ? "45px" : isTablet ? "50px" : "60px";
         const pillRadius = isMobile ? "22.5px" : isTablet ? "25px" : "30px";
-        const textSize = isMobile ? "1rem" : isTablet ? "1.2rem" : "1.5rem";
 
         // Ensure banner starts in initial banner state (not pill)
         gsap.set(banner, {
@@ -315,31 +316,16 @@ export default function AlchemysticBanner({ className = '', page = 'nourish', th
                         padding: '8px'
                     }}
                 >
-                    <a
-                        href="/"
-                        style={{
-                            height: '100%',
-                            width: '100%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            textDecoration: 'none',
-                            cursor: 'pointer',
-                            borderRadius: '30px 0 0 30px'
-                        }}
-                    >
-                        <img
+                    <Link href="/" className="flex h-full w-full items-center justify-center rounded-l-[30px]" passHref>
+                        <Image
                             src="/download.png"
                             alt="Alchemystic Logo"
-                            style={{
-                                height: '100%',
-                                width: 'auto',
-                                objectFit: 'contain',
-                                maxWidth: '100%',
-                                pointerEvents: 'none'
-                            }}
+                            width={120}
+                            height={40}
+                            className="h-full w-auto max-w-full object-contain pointer-events-none"
+                            priority
                         />
-                    </a>
+                    </Link>
                 </div>
 
                 {/* Empty space section (middle 20%) */}
@@ -363,36 +349,13 @@ export default function AlchemysticBanner({ className = '', page = 'nourish', th
                     {quickLinks.map((link, index) => (
                         <div key={index} style={{ display: 'flex', height: '100%', flex: 1 }}>
                             {/* Link section - fully clickable */}
-                            <a
+                            <Link
                                 href={link.href}
-                                className="nav-section"
-                                style={{
-                                    height: '100%',
-                                    width: '100%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    color: '#ffffff',
-                                    fontSize: '0.875rem',
-                                    fontWeight: '500',
-                                    textDecoration: 'none',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.2s ease',
-                                    borderRadius: index === quickLinks.length - 1 ? '0 30px 30px 0' : '0',
-                                    boxSizing: 'border-box',
-                                    border: 'none',
-                                    outline: 'none',
-                                    userSelect: 'none'
-                                }}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'rgba(251, 191, 36, 0.15)';
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.backgroundColor = 'transparent';
-                                }}
+                                className="nav-section flex h-full w-full items-center justify-center text-white text-sm font-medium"
+                                prefetch={false}
                             >
                                 {link.label}
-                            </a>
+                            </Link>
 
                             {/* Vertical divider (except after last item) */}
                             {index < quickLinks.length - 1 && (

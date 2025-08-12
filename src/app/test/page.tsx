@@ -65,7 +65,7 @@ export default function TestPage() {
             />
 
             {/* Controls Panel */}
-            <div className="fixed top-4 left-4 z-50 bg-black/80 backdrop-blur-sm rounded-lg p-4 text-white">
+            <div className="fixed top-4 left-4 z-50 bg-black/80 backdrop-blur-sm rounded-lg p-4 text-red-500">
                 <h2 className="text-lg font-bold mb-4">Controls</h2>
 
                 <div className="space-y-3">
