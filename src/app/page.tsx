@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import DrippingSphereSystem from '@/components/ui/MultiSphereSystem/DrippingSphereSystem';
+import PlanetSystem from '@/components/ui/MultiSphereSystem/PlanetSystem';
 
 export default function DrippingPage() {
     const [scrollProgress, setScrollProgress] = useState(0);
@@ -21,9 +21,7 @@ export default function DrippingPage() {
     return (
         <div className="relative">
             {/* 4-Sphere Rotating 3D System that fills the viewport */}
-            <DrippingSphereSystem
-                scrollProgress={scrollProgress}
-            />
+            <PlanetSystem scrollProgress={scrollProgress} />
 
         </div>
     );

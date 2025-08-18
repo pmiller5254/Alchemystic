@@ -16,8 +16,9 @@ import './MultiSphereSystem.css';
 // Lazy-load shader background component for client only rendering
 const CustomShaderBackground = dynamic(() => import('@/components/ui/InvertedBlackHoleBackground/CustomShaderBackground'), { ssr: false });
 
-interface DrippingSphereSystemProps {
+interface PlanetSystemProps {
     scrollProgress?: number;
+    showControls?: boolean; // whether to render debug control panels
 }
 
 interface SphereData {
@@ -233,7 +234,7 @@ function LogoControlsPortal({ logoRotation, setLogoRotation }: { logoRotation: {
     return ReactDOM.createPortal(control, document.body);
 }
 
-export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSphereSystemProps) {
+export default function PlanetSystem({ scrollProgress = 0, showControls = false }: PlanetSystemProps) {
     const mountRef = useRef<HTMLDivElement>(null);
     const sceneRef = useRef<THREE.Scene | null>(null);
     const logoRef = useRef<THREE.Group | null>(null);
@@ -812,7 +813,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                     sphere.material.uniforms.uMinDimension.value = Math.min(window.innerWidth, window.innerHeight);
                 });
             } catch (error) {
-                console.error('DrippingSphereSystem resize error:', error);
+                console.error('PlanetSystem resize error:', error);
             }
         };
 
@@ -885,18 +886,20 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                 </div>
             )}
 
-            <CameraControlsPortal
-                cameraPosition={cameraPosition}
-                setCameraPosition={setCameraPosition}
-                cameraLookAt={cameraLookAt}
-                setCameraLookAt={setCameraLookAt}
-                triggerCameraTransition={triggerCameraTransition}
-                isTransitioning={isTransitioning}
-                isCloseUp={isCloseUp}
-            />
-
-            {/* Logo orientation controls */}
-            <LogoControlsPortal logoRotation={logoRotation} setLogoRotation={setLogoRotation} />
+            {showControls && (
+                <>
+                    <CameraControlsPortal
+                        cameraPosition={cameraPosition}
+                        setCameraPosition={setCameraPosition}
+                        cameraLookAt={cameraLookAt}
+                        setCameraLookAt={setCameraLookAt}
+                        triggerCameraTransition={triggerCameraTransition}
+                        isTransitioning={isTransitioning}
+                        isCloseUp={isCloseUp}
+                    />
+                    <LogoControlsPortal logoRotation={logoRotation} setLogoRotation={setLogoRotation} />
+                </>
+            )}
         </div>
     );
 }
