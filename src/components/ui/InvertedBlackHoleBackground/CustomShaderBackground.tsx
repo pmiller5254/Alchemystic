@@ -144,7 +144,7 @@ export default function CustomShaderBackground({
         renderer.domElement.style.left = '0';
         renderer.domElement.style.width = '100%';
         renderer.domElement.style.height = '100%';
-        renderer.domElement.style.zIndex = '1';
+        renderer.domElement.style.zIndex = '2';
         renderer.domElement.style.pointerEvents = 'none';
         rendererRef.current = renderer;
 

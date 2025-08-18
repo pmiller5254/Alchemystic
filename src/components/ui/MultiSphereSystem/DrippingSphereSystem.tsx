@@ -1,14 +1,20 @@
 'use client';
 
 import React, { useRef, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import ReactDOM from 'react-dom';
 
 import './MultiSphereSystem.css';
+
+// Lazy-load shader background component for client only rendering
+const CustomShaderBackground = dynamic(() => import('@/components/ui/InvertedBlackHoleBackground/CustomShaderBackground'), { ssr: false });
 
 interface DrippingSphereSystemProps {
     scrollProgress?: number;
@@ -41,7 +47,7 @@ function CameraControlsPortal({
     const [showControls, setShowControls] = useState(true);
     const [isClient, setIsClient] = useState(false);
 
-    console.log('CameraControlsPortal render - showControls:', showControls);
+    // debug log removed
 
     // Ensure we're on the client side
     useEffect(() => {
@@ -200,9 +206,40 @@ function CameraControlsPortal({
     return ReactDOM.createPortal(controlPanel, document.body);
 }
 
+// Portal for real-time logo orientation controls
+function LogoControlsPortal({ logoRotation, setLogoRotation }: { logoRotation: { x: number; y: number; z: number }; setLogoRotation: (r: { x: number; y: number; z: number }) => void; }) {
+    const [isClient, setIsClient] = useState(false);
+    const [showControls, setShowControls] = useState(true);
+    useEffect(() => setIsClient(true), []);
+    if (!isClient) return null;
+
+    const control = (
+        showControls ? (
+            <div style={{ position: 'fixed', bottom: '20px', right: '20px', background: 'rgba(0,0,0,.8)', color: '#fff', padding: '12px', borderRadius: '8px', zIndex: 1000, fontFamily: 'monospace', fontSize: '12px', minWidth: '260px' }}>
+                <div style={{ marginBottom: '6px', fontWeight: 'bold' }}>Logo Rotation
+                    <button onClick={() => setShowControls(false)} style={{ float: 'right', background: 'red', border: 'none', color: '#fff', borderRadius: 3, cursor: 'pointer' }}>X</button>
+                </div>
+                {['x', 'y', 'z'].map(axis => (
+                    <div key={axis} style={{ display: 'grid', gridTemplateColumns: '1fr 36px', alignItems: 'center', marginBottom: 4 }}>
+                        <input type="range" min={-180} max={180} step={1} value={(logoRotation as any)[axis]} onChange={e => setLogoRotation({ ...logoRotation, [axis]: parseFloat(e.target.value) })} />
+                        <span>{(logoRotation as any)[axis]}</span>
+                    </div>
+                ))}
+            </div>
+        ) : (
+            <button onClick={() => setShowControls(true)} style={{ position: 'fixed', bottom: '20px', right: '20px', background: 'rgba(0,0,0,.8)', color: '#fff', border: 'none', borderRadius: 5, padding: '10px', zIndex: 1000 }}>Logo Controls</button>
+        )
+    );
+    return ReactDOM.createPortal(control, document.body);
+}
+
 export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSphereSystemProps) {
     const mountRef = useRef<HTMLDivElement>(null);
     const sceneRef = useRef<THREE.Scene | null>(null);
+    const logoRef = useRef<THREE.Group | null>(null);
+    const mixerRef = useRef<THREE.AnimationMixer | null>(null);
+    const auraMaterialRef = useRef<THREE.ShaderMaterial | null>(null);
+    const auraMeshRef = useRef<THREE.Mesh | null>(null);
     const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
     const spheresRef = useRef<SphereData[]>([]);
@@ -216,12 +253,19 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [isCloseUp, setIsCloseUp] = useState(false);
 
+    // Logo rotation state (degrees)
+    const [logoRotation, setLogoRotation] = useState({ x: -90, y: 120, z: 0 });
+
     // Hover state for planets - use ref instead of state for performance
     const hoveredPlanetRef = useRef<string | null>(null);
     const [hoveredTheme, setHoveredTheme] = useState<'purple' | 'blue' | 'forest' | 'gold' | null>(null);
+    const [showShader, setShowShader] = useState(false);
 
     // Mouse ref for raycasting (using ref avoids stale closures)
     const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+    const clickPositionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+    const router = useRouter();
     const raycaster = useRef<THREE.Raycaster>(new THREE.Raycaster());
 
     // Mouse move handler for hover detection - remove console.log
@@ -238,11 +282,36 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
             }
         };
         window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+
+        const handleClick = (event: MouseEvent) => {
+            if (rendererRef.current) {
+                const rect = rendererRef.current.domElement.getBoundingClientRect();
+                clickPositionRef.current = {
+                    x: ((event.clientX - rect.left) / rect.width) * 2 - 1,
+                    y: -((event.clientY - rect.top) / rect.height) * 2 + 1
+                };
+
+                if (cameraRef.current) {
+                    raycaster.current.setFromCamera(new THREE.Vector2(clickPositionRef.current.x, clickPositionRef.current.y), cameraRef.current);
+                    const intersects = raycaster.current.intersectObjects(spheresRef.current.map(s => s.mesh));
+                    if (intersects.length > 0) {
+                        const theme = spheresRef.current.find(s => s.mesh.uuid === intersects[0].object.uuid)?.theme;
+                        if (theme) {
+                            router.push(themeButtonConfig[theme].link);
+                        }
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('click', handleClick);
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('click', handleClick);
+        };
     }, []);
 
-    // Debug logging
-    console.log('DrippingSphereSystem render');
+    // Debug logging removed
 
     // Remove the camera ref sync effect - not needed for performance
     // useEffect(() => {
@@ -267,7 +336,6 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                 setIsTransitioning(false);
                 setIsCloseUp(!isCloseUp);
                 setCameraPosition({ ...cameraPositionRef.current });
-                console.log('Camera transition completed');
             }
         });
     };
@@ -275,7 +343,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
     // Configuration variables - all hardcoded values now configurable
     const config = {
         globeRadius: 1.5,
-        orbitRadius: 8,
+        orbitRadius: 12,
         orbitSpeed: 0.1,
         sphereYPosition: -1,
         rotationSpeedX: 0.0,
@@ -438,6 +506,11 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                 if (!hoveredPlanetRef.current) {
                     orbitOffset += config.orbitSpeed * delta;
                 }
+
+                // Update logo animation mixer and aura shader time
+                if (mixerRef.current) mixerRef.current.update(delta);
+                // aura removed
+
                 const orbitAngle = orbitOffset + index * config.sphereSpacing;
                 const x = Math.cos(orbitAngle) * config.orbitRadius;
                 const z = Math.sin(orbitAngle) * config.orbitRadius;
@@ -474,12 +547,10 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
 
                     hoveredPlanetRef.current = newTheme;
                     setHoveredTheme(newTheme);
+                    setShowShader(!!newTheme);
                 }
             }
-            // Replace scroll-based rotation with gentle automatic rotation
-            if (sceneRef.current && !hoveredPlanetRef.current) {
-                sceneRef.current.rotation.y += 0.0004; // very gentle spin
-            }
+            // Disable scene auto-rotation so logo stays fixed
             if (rendererRef.current && sceneRef.current && cameraRef.current) {
                 rendererRef.current.render(sceneRef.current, cameraRef.current);
             }
@@ -488,18 +559,51 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
         return () => {
             gsap.ticker.remove(ticker);
         };
-    }, [scrollProgress]); // Remove heavy dependencies, only keep scrollProgress
+    }, []); // independent of scroll; prevents ticker reset on scroll
+
+    // Update logo orientation whenever controls change
+    useEffect(() => {
+        if (logoRef.current) {
+            logoRef.current.rotation.set(
+                THREE.MathUtils.degToRad(logoRotation.x),
+                THREE.MathUtils.degToRad(logoRotation.y),
+                THREE.MathUtils.degToRad(logoRotation.z)
+            );
+        }
+    }, [logoRotation]);
+
+    // Change logo emissive accent based on hovered planet theme
+    useEffect(() => {
+        // control shader visibility
+    }, [hoveredTheme, themeColors]);
+
+    // Render shader background when hovering
+    const shaderElement = (
+        <div className="fixed inset-0 pointer-events-none" style={{ opacity: hoveredTheme ? 1 : 0, transition: 'opacity 200ms ease', zIndex: 2 }}>
+            <CustomShaderBackground
+                scale={0.4}
+                ax={5}
+                ay={7}
+                az={9}
+                aw={13}
+                bx={1}
+                by={1}
+                color1="#000000"
+                color2="#000000"
+                color3="#000000"
+                color4={hoveredTheme ? `#${themeColors[hoveredTheme].accent.getHexString()}` : '#000000'}
+            />
+        </div>
+    );
 
     // Initialize the 3D scene (based on working sphere)
     useEffect(() => {
-        console.log('DrippingSphereSystem useEffect running');
         if (!mountRef.current) {
-            console.log('No mountRef.current');
             return;
         }
 
         const mountElement = mountRef.current;
-        console.log('Mount element found:', mountElement);
+
 
         // Set up mount element styling - remove conflicting styles
         mountElement.style.background = 'transparent';
@@ -511,7 +615,78 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
 
         // Scene setup
         const scene = new THREE.Scene();
+
+        // Lighting setup for better reflections
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+        const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        keyLight.position.set(10, 10, 10);
+        scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        fillLight.position.set(-10, 5, -5);
+        scene.add(fillLight);
+
+        const rimLight = new THREE.PointLight(0xffffff, 1.0, 0, 2);
+        rimLight.position.set(0, -10, 0);
+        scene.add(rimLight);
+
         sceneRef.current = scene;
+
+        // Load central logo model
+        const gltfLoader = new GLTFLoader();
+        gltfLoader.load('/models/logo.glb', (gltf) => {
+            const logo = gltf.scene;
+
+            // ---------- DEBUG block ----------
+            const logoBoundingBox = new THREE.Box3().setFromObject(logo);
+            const logoSize = logoBoundingBox.getSize(new THREE.Vector3());
+
+            const maxDim = Math.max(logoSize.x, logoSize.y, logoSize.z);
+            const targetRadius = 9; // 1.5x larger than previous (logo bigger)
+            const scale = maxDim > 0 ? targetRadius / maxDim : 1;
+            logo.scale.setScalar(scale);
+            logo.position.set(0, 0, 0);
+
+            // Apply glossy black material to logo meshes
+            logo.traverse((child: any) => {
+                if (child.isMesh) {
+                    child.material = new THREE.MeshPhysicalMaterial({
+                        color: 0x000000,
+                        metalness: 1.0,
+                        roughness: 0.05,
+                        clearcoat: 0.6,
+                        clearcoatRoughness: 0.1,
+                        reflectivity: 0.95,
+                    });
+                }
+            });
+
+            // Aura sphere removed
+
+            // Play embedded animations (e.g., spin)
+            if (gltf.animations && gltf.animations.length) {
+                const mixer = new THREE.AnimationMixer(logo);
+                gltf.animations.forEach((clip) => {
+                    const action = mixer.clipAction(clip);
+                    action.play();
+                });
+                mixer.timeScale = 2; // double speed
+                mixerRef.current = mixer;
+            }
+
+            logo.rotation.set(
+                THREE.MathUtils.degToRad(logoRotation.x),
+                THREE.MathUtils.degToRad(logoRotation.y),
+                THREE.MathUtils.degToRad(logoRotation.z)
+            );
+            // ---------- END DEBUG ------------
+
+            scene.add(logo);
+            logoRef.current = logo;
+        }, undefined, (error) => {
+            console.error('Failed to load logo.glb', error);
+        });
 
         // Get viewport size (same as working sphere)
         const getSize = () => {
@@ -530,7 +705,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
             premultipliedAlpha: false
         });
         getSize(); // dimensions retrieved but values unused
-        renderer.setClearColor(0x000000, 1); // Black background
+        renderer.setClearColor(0x000000, 1); // Opaque black background
 
         // Set renderer to fill the full viewport
         renderer.setSize(window.innerWidth, window.innerHeight);
@@ -544,7 +719,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
         renderer.domElement.style.left = '0';
         renderer.domElement.style.width = '100vw';
         renderer.domElement.style.height = '100vh';
-        renderer.domElement.style.zIndex = '10';
+        renderer.domElement.style.zIndex = '1';
         renderer.domElement.style.pointerEvents = 'auto';
 
         mountElement.appendChild(renderer.domElement);
@@ -556,9 +731,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
         camera.lookAt(0, 0, 0);
         cameraRef.current = camera;
 
-        console.log('Creating spheres...');
-
-        // Create 4 spheres positioned in a planetary orbit
+        // create spheres
         const themes: ('purple' | 'blue' | 'forest' | 'gold')[] = ['purple', 'blue', 'forest', 'gold'];
 
         themes.forEach((theme, index) => {
@@ -616,10 +789,8 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                 material: sphereMaterial
             });
 
-            console.log(`Created sphere ${index} with theme ${theme} at position (${x.toFixed(2)}, ${y.toFixed(2)}, ${z.toFixed(2)})`);
+            // total spheres created – removed log for clarity
         });
-
-        console.log(`Total spheres created: ${spheresRef.current.length}`);
 
         // Initialize scroll-related uniforms immediately after creation (same as working sphere)
         spheresRef.current.forEach(sphere => {
@@ -657,7 +828,7 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                         sphere.material.uniforms.uMinDimension.value = Math.min(window.innerWidth, window.innerHeight);
                     }
                 });
-                console.log('DrippingSphereSystem: Tab became visible, reset shader state');
+                // visibility handler log removed
             }
         };
 
@@ -686,24 +857,16 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                 renderer.dispose();
             }
 
-            console.log('DrippingSphereSystem: Cleanup completed');
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []); // run once on mount
 
-    // Update scroll-related uniforms (separate from scene creation)
-    useEffect(() => {
-        spheresRef.current.forEach(sphere => {
-            if (sphere.material.uniforms) {
-                sphere.material.uniforms.scrollProgress.value = scrollProgress;
-                sphere.material.uniforms.turbulence.value = 0.3 + 0.4 * scrollProgress;
-                sphere.material.uniforms.diskIntensity.value = 0.8 + 0.4 * scrollProgress;
-            }
-        });
-    }, [scrollProgress]);
+    // Scroll uniforms update disabled – no scroll influence on system
 
     return (
         <div ref={mountRef} className="sphere-container">
+            {/* base backdrop removed since renderer now opaque */}
+            {shaderElement}
             {/* Overlay button when a planet is hovered */}
             {hoveredTheme && (
                 <div className="fixed inset-0 flex items-center justify-center z-[100] pointer-events-none">
@@ -731,6 +894,9 @@ export default function DrippingSphereSystem({ scrollProgress = 0 }: DrippingSph
                 isTransitioning={isTransitioning}
                 isCloseUp={isCloseUp}
             />
+
+            {/* Logo orientation controls */}
+            <LogoControlsPortal logoRotation={logoRotation} setLogoRotation={setLogoRotation} />
         </div>
     );
 }
